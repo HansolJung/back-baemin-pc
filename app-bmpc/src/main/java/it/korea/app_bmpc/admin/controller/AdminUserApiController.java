@@ -168,18 +168,14 @@ public class AdminUserApiController {
 
     /**
      * 리뷰 삭제하기
-     * @param userId 사용자 아이디
      * @param reviewId 리뷰 아이디
-     * @param user 로그인한 사용자
      * @return
      * @throws Exception
      */
     @DeleteMapping("/admin/review/{reviewId}")
-    public ResponseEntity<?> deleteReview(
-            @PathVariable(name = "userId") String userId,
-            @PathVariable(name = "reviewId") int reviewId) throws Exception {
+    public ResponseEntity<?> deleteReview(@PathVariable(name = "reviewId") int reviewId) throws Exception {
 
-        reviewService.deleteReview(userId, reviewId);
+        reviewService.deleteReviewByAdmin(reviewId);
 
         return ResponseEntity.ok().body(ApiResponse.ok("OK"));
     }
@@ -187,7 +183,6 @@ public class AdminUserApiController {
     /**
      * 리뷰 답변 삭제하기
      * @param reviewReplyId 리뷰 답변 아이디
-     * @param user 로그인한 사용자
      * @return
      * @throws Exception
      */

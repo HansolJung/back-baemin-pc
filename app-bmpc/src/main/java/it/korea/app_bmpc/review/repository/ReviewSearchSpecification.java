@@ -42,7 +42,7 @@ public class ReviewSearchSpecification implements Specification<ReviewEntity> {
             Predicate contentPredicate = cb.like(root.get("content"), likeText);
 
             // 가게명 또는 리뷰 내용으로 검색
-            Predicate orPredicate = cb.or(storeNamePredicate, contentPredicate);
+            Predicate orPredicate = orTogether(List.of(storeNamePredicate, contentPredicate), cb);
             predicates.add(orPredicate);
 
             query.distinct(true);
@@ -51,7 +51,7 @@ public class ReviewSearchSpecification implements Specification<ReviewEntity> {
         // 기본적으로 삭제가 안된 리뷰만 검색
         predicates.add(cb.equal(root.get("delYn"), "N"));
 
-        return cb.and(predicates.toArray(new Predicate[0]));
+        return andTogether(predicates, cb);
     }
 
     private Predicate andTogether(List<Predicate> predicates, CriteriaBuilder cb) {
