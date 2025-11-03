@@ -32,44 +32,32 @@ public class FavoriteStoreApiController {
     /**
      * 찜 리스트 가져오기
      * @param pageable 페이징 객체
-     * @param userId 사용자 아이디
      * @param user 로그인한 사용자
      * @return
      * @throws Exception
      */
-    @GetMapping("/favorite/user/{userId}")
+    @GetMapping("/favorite")
     public ResponseEntity<?> getFavoriteStoreList(@PageableDefault(page = 0, size = 10, 
             sort = "createDate", direction = Direction.DESC) Pageable pageable,
-            @PathVariable(name = "userId") String userId,
             @AuthenticationPrincipal UserSecureDTO user) throws Exception {
 
-        if (!userId.equals(user.getUserId())) {   // 로그인 된 유저의 아이디와 PathVariable 로 넘어온 아이디가 일치하지 않을 경우...
-            throw new RuntimeException("다른 사용자의 찜 목록은 볼 수 없습니다.");
-        }
-        
-        Map<String, Object> resultMap = favoriteStoreService.getFavoriteStoreList(pageable, userId);
+        Map<String, Object> resultMap = favoriteStoreService.getFavoriteStoreList(pageable, user.getUserId());
 
         return ResponseEntity.ok().body(ApiResponse.ok(resultMap));
     }
 
     /**
      * 찜 목록 존재 여부 확인하기
-     * @param userId 사용자 아이디
      * @param storeId 가게 아이디
      * @param user 로그인한 사용자
      * @return
      * @throws Exception
      */
-    @GetMapping("/favorite/user/{userId}/store/{storeId}")
-    public ResponseEntity<?> isFavoriteStore(@PathVariable(name = "userId") String userId,
-            @PathVariable(name = "storeId") int storeId,
+    @GetMapping("/favorite/store/{storeId}")
+    public ResponseEntity<?> isFavoriteStore(@PathVariable(name = "storeId") int storeId,
             @AuthenticationPrincipal UserSecureDTO user) throws Exception {
 
-        if (!userId.equals(user.getUserId())) {   // 로그인 된 유저의 아이디와 PathVariable 로 넘어온 아이디가 일치하지 않을 경우...
-            throw new RuntimeException("다른 사용자의 찜 목록 존재 여부는 확인할 수 없습니다.");
-        }
-        
-        boolean isFavoriteStore = favoriteStoreService.isFavoriteStore(userId, storeId);
+        boolean isFavoriteStore = favoriteStoreService.isFavoriteStore(user.getUserId(), storeId);
 
         return ResponseEntity.ok().body(ApiResponse.ok(isFavoriteStore));
     }
@@ -96,22 +84,16 @@ public class FavoriteStoreApiController {
 
     /**
      * 찜 목록에서 삭제하기
-     * @param userId 사용자 아이디
      * @param storeId 가게 아이디
      * @param user 로그인한 사용자
      * @return
      * @throws Exception
      */
-    @DeleteMapping("/favorite/user/{userId}/store/{storeId}")
-    public ResponseEntity<?> deleteFavoriteStore(@PathVariable(name = "userId") String userId,
-            @PathVariable(name = "storeId") int storeId,
+    @DeleteMapping("/favorite/store/{storeId}")
+    public ResponseEntity<?> deleteFavoriteStore(@PathVariable(name = "storeId") int storeId,
             @AuthenticationPrincipal UserSecureDTO user) throws Exception {
 
-        if (!userId.equals(user.getUserId())) {   // 로그인 된 유저의 아이디와 PathVariable 로 넘어온 아이디가 일치하지 않을 경우...
-            throw new RuntimeException("다른 사용자의 찜 목록에서 삭제할 수 없습니다.");
-        }
-        
-        favoriteStoreService.deleteFavoriteStore(userId, storeId);
+        favoriteStoreService.deleteFavoriteStore(user.getUserId(), storeId);
 
         return ResponseEntity.ok().body(ApiResponse.ok("OK"));
     }

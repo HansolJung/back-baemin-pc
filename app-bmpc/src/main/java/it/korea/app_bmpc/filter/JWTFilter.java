@@ -99,7 +99,7 @@ public class JWTFilter extends OncePerRequestFilter {
 
         // 사용자 삭제 여부 확인
         if (user == null || "Y".equals(user.getDelYn())) {
-            sendErrorResponse(response, "해당 계정은 삭제되었습니다. 다시 로그인해주세요.", HttpServletResponse.SC_UNAUTHORIZED);
+            sendErrorResponse(response, "해당 계정은 삭제되었습니다. 다른 계정으로 로그인해주세요.", HttpServletResponse.SC_UNAUTHORIZED);
             
             return;
         }

@@ -76,6 +76,42 @@ public class ReviewService {
     }
 
     /**
+     * 내 가게의 리뷰 리스트 가져오기
+     * @param pageable 페이징 객체
+     * @param storeId 가게 아이디
+     * @return
+     * @throws Exception
+     */
+    @Transactional(readOnly = true)
+    public Map<String, Object> getOwnerStoreReviewList(Pageable pageable, String userId) throws Exception {
+
+        // 점주 소유 여부 확인
+        UserEntity ownerEntity = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("해당 사용자가 존재하지 않습니다."));
+
+        StoreEntity storeEntity = ownerEntity.getStore();
+        if (storeEntity == null) {
+            throw new RuntimeException("등록된 가게가 없습니다.");
+        }
+
+        Map<String, Object> resultMap = new HashMap<>();
+
+        Page<ReviewEntity> pageList = reviewRepository.findAllByStore_storeIdAndDelYn(storeEntity.getStoreId(), "N", pageable);
+
+        List<ReviewDTO.Response> reviewList = pageList.getContent().stream().map(ReviewDTO.Response::of).toList();
+
+        PageVO pageVO = new PageVO();
+        pageVO.setData(pageList.getNumber(), (int) pageList.getTotalElements());
+
+        resultMap.put("total", pageList.getTotalElements());
+        resultMap.put("content", reviewList);
+        resultMap.put("pageHTML", pageVO.pageHTML());
+        resultMap.put("page", pageList.getNumber());
+        
+        return resultMap;
+    }
+
+    /**
      * 사용자가 작성한 리뷰 리스트 가져오기
      * @param pageable 페이징 객체
      * @param userId 사용자 아이디

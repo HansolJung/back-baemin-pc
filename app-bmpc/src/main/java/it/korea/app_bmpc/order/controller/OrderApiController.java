@@ -35,23 +35,17 @@ public class OrderApiController {
     /**
      * 나의 주문내역 리스트 요청
      * @param pageable 페이징 객체
-     * @param userId 사용자 아이디
      * @param user 로그인한 사용자
      * @return
      * @throws Exception
      */
     @PreAuthorize("hasRole('USER')") // ROLE_USER 권한이 있어야 접근 가능
-    @GetMapping("/order/user/{userId}")
+    @GetMapping("/order/my")
     public ResponseEntity<?> getMyOrderList(@PageableDefault(page = 0, size = 10, 
             sort = "orderDate", direction = Direction.DESC) Pageable pageable,
-            @PathVariable(name = "userId") String userId,
             @AuthenticationPrincipal UserSecureDTO user) throws Exception {
 
-        if (!userId.equals(user.getUserId())) {   // 로그인 된 유저의 아이디와 PathVariable 로 넘어온 아이디가 일치하지 않을 경우...
-            throw new RuntimeException("다른 사용자의 주문 내역 리스트는 볼 수 없습니다.");
-        }
-        
-        Map<String, Object> resultMap = orderService.getMyOrderList(pageable, userId);
+        Map<String, Object> resultMap = orderService.getMyOrderList(pageable, user.getUserId());
 
         return ResponseEntity.ok().body(ApiResponse.ok(resultMap));
     }

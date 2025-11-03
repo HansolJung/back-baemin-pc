@@ -31,22 +31,16 @@ public class BasketApiController {
 
     /**
      * 나의 장바구니 가져오기
-     * @param userId 사용자 아이디
-     * @param user 로그인 된 사용자
+     * @param user 로그인한 사용자
      * @return
      * @throws Exception
      */
     @PreAuthorize("hasRole('USER')") // ROLE_USER 권한이 있어야 접근 가능
-    @GetMapping("/basket/user/{userId}")
-    public ResponseEntity<?> getBasket(@PathVariable(name = "userId") String userId,
-            @AuthenticationPrincipal UserSecureDTO user) throws Exception {
-
-        if (!userId.equals(user.getUserId())) {   // 로그인 된 유저의 아이디와 PathVariable 로 넘어온 아이디가 일치하지 않을 경우...
-            throw new RuntimeException("다른 사용자의 장바구니는 볼 수 없습니다.");
-        }
+    @GetMapping("/basket")
+    public ResponseEntity<?> getBasket(@AuthenticationPrincipal UserSecureDTO user) throws Exception {
 
         Map<String, Object> resultMap = new HashMap<>();
-        BasketDTO.Detail dto = basketService.getBasket(userId);
+        BasketDTO.Detail dto = basketService.getBasket(user.getUserId());
     
         resultMap.put("vo", dto);
 
@@ -55,23 +49,17 @@ public class BasketApiController {
 
     /**
      * 장바구니 전부 주문하기
-     * @param userId 사용자 아이디
      * @param request 장바구니 객체
      * @param user 로그인한 사용자
      * @return
      * @throws Exception
      */
     @PreAuthorize("hasRole('USER')") // ROLE_USER 권한이 있어야 접근 가능
-    @PostMapping("/basket/user/{userId}/order")
-    public ResponseEntity<?> orderAllMenu(@PathVariable(name = "userId") String userId,
-            @Valid @RequestBody BasketDTO.OrderRequest request,
+    @PostMapping("/basket/order")
+    public ResponseEntity<?> orderAllMenu(@Valid @RequestBody BasketDTO.OrderRequest request,
             @AuthenticationPrincipal UserSecureDTO user) throws Exception {
 
-        if (!userId.equals(user.getUserId())) {
-            throw new RuntimeException("다른 사용자의 장바구니를 주문할 수 없습니다.");
-        }
-
-        request.setUserId(userId);
+        request.setUserId(user.getUserId());
 
         basketService.orderAllMenu(request);
 
@@ -102,92 +90,68 @@ public class BasketApiController {
 
     /**
      * 장바구니 메뉴 삭제하기
-     * @param userId 사용자 아이디
      * @param basketItemId 장바구니 항목 아이디
      * @param user 로그인한 사용자
      * @return
      * @throws Exception
      */
     @PreAuthorize("hasRole('USER')") // ROLE_USER 권한이 있어야 접근 가능
-    @DeleteMapping("/basket/user/{userId}/item/{basketItemId}")
-    public ResponseEntity<?> deleteMenu(@PathVariable(name = "userId") String userId,
-            @PathVariable(name = "basketItemId") int basketItemId,
+    @DeleteMapping("/basket/item/{basketItemId}")
+    public ResponseEntity<?> deleteMenu(@PathVariable(name = "basketItemId") int basketItemId,
             @AuthenticationPrincipal UserSecureDTO user) throws Exception {
 
-        if (!userId.equals(user.getUserId())) {
-            throw new RuntimeException("다른 사용자의 장바구니는 삭제할 수 없습니다.");
-        }
-
-        basketService.deleteMenu(userId, basketItemId);
+        basketService.deleteMenu(user.getUserId(), basketItemId);
 
         return ResponseEntity.ok().body(ApiResponse.ok("OK"));
     }
     
     /**
      * 장바구니 메뉴 전부 삭제하기
-     * @param userId 사용자 아이디
      * @param user 로그인한 사용자
      * @return
      * @throws Exception
      */
     @PreAuthorize("hasRole('USER')") // ROLE_USER 권한이 있어야 접근 가능
-    @DeleteMapping("/basket/user/{userId}")
-    public ResponseEntity<?> deleteAllMenu(@PathVariable(name = "userId") String userId,
-            @AuthenticationPrincipal UserSecureDTO user) throws Exception {
+    @DeleteMapping("/basket")
+    public ResponseEntity<?> deleteAllMenu(@AuthenticationPrincipal UserSecureDTO user) throws Exception {
 
-        if (!userId.equals(user.getUserId())) {
-            throw new RuntimeException("다른 사용자의 장바구니는 삭제할 수 없습니다.");
-        }
-
-        basketService.deleteAllMenu(userId);
+        basketService.deleteAllMenu(user.getUserId());
 
         return ResponseEntity.ok().body(ApiResponse.ok("OK"));
     }
 
     /**
      * 장바구니 항목 수량 증가시키기 (+ 버튼 클릭)
-     * @param userId 사용자 아이디
      * @param basketItemId 장바구니 항목 아이디
      * @param user 로그인한 사용자
      * @return
      * @throws Exception
      */
     @PreAuthorize("hasRole('USER')")
-    @PutMapping("/basket/user/{userId}/item/{basketItemId}/increase")
+    @PutMapping("/basket/item/{basketItemId}/increase")
     public ResponseEntity<?> increaseMenuQuantity(
-            @PathVariable(name = "userId") String userId,
             @PathVariable(name = "basketItemId") int basketItemId,
             @AuthenticationPrincipal UserSecureDTO user) throws Exception {
 
-        if (!userId.equals(user.getUserId())) {
-            throw new RuntimeException("다른 사용자의 장바구니는 수정할 수 없습니다.");
-        }
-
-        basketService.increaseMenuQuantity(userId, basketItemId);
+        basketService.increaseMenuQuantity(user.getUserId(), basketItemId);
 
         return ResponseEntity.ok().body(ApiResponse.ok("OK"));
     }
 
     /**
      * 장바구니 항목 수량 감소시키기 (- 버튼 클릭)
-     * @param userId 사용자 아이디
      * @param basketItemId 장바구니 항목 아이디
      * @param user 로그인한 사용자
      * @return
      * @throws Exception
      */
     @PreAuthorize("hasRole('USER')")
-    @PutMapping("/basket/user/{userId}/item/{basketItemId}/decrease")
+    @PutMapping("/basket/item/{basketItemId}/decrease")
     public ResponseEntity<?> decreaseMenuQuantity(
-            @PathVariable(name = "userId") String userId,
             @PathVariable(name = "basketItemId") int basketItemId,
             @AuthenticationPrincipal UserSecureDTO user) throws Exception {
 
-        if (!userId.equals(user.getUserId())) {
-            throw new RuntimeException("다른 사용자의 장바구니는 수정할 수 없습니다.");
-        }
-
-        basketService.decreaseMenuQuantity(userId, basketItemId);
+        basketService.decreaseMenuQuantity(user.getUserId(), basketItemId);
 
         return ResponseEntity.ok().body(ApiResponse.ok("OK"));
     }
