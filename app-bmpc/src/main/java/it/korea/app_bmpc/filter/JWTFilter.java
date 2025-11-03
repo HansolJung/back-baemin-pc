@@ -55,6 +55,14 @@ public class JWTFilter extends OncePerRequestFilter {
         // header 에 원래 있는 속성인 Authorization 으로 찾는다
         String accessToken = request.getHeader("Authorization");
 
+        // 2header 없으면 SSE 요청일 가능성이 있기 때문에 query parameter 를 확인한다
+        if (accessToken == null && requestURI.startsWith("/api/v1/sse/subscribe")) {
+            accessToken = request.getParameter("token");
+            if (accessToken != null && !accessToken.startsWith("Bearer ")) {
+                accessToken = "Bearer " + accessToken; // 기존 로직 맞춤
+            }
+        }
+
         if (accessToken == null) {  // accessToken 이 null 이라면 로그인을 안했다는 뜻
             log.error("accessToken is null");
             filterChain.doFilter(request, response);   // 다음 필터로 이동하도록 함

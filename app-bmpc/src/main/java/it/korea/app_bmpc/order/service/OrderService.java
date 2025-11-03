@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,7 @@ import it.korea.app_bmpc.order.dto.OrderStatusDTO;
 import it.korea.app_bmpc.order.entity.OrderEntity;
 import it.korea.app_bmpc.order.entity.OrderItemEntity;
 import it.korea.app_bmpc.order.entity.OrderItemOptionEntity;
+import it.korea.app_bmpc.order.event.OrderStatusChangedEvent;
 import it.korea.app_bmpc.order.repository.OrderRepository;
 import it.korea.app_bmpc.order.repository.OrderSearchSpecification;
 import it.korea.app_bmpc.store.entity.StoreEntity;
@@ -38,6 +40,7 @@ public class OrderService {
     private final UserRepository userRepository;
     private final MenuRepository menuRepository;
     private final MenuOptionRepository menuOptionRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * 주문 내역 리스트 가져오기
@@ -401,6 +404,10 @@ public class OrderService {
 
         StoreEntity storeEntity = orderEntity.getStore();
 
+        if (storeEntity == null) {
+            throw new RuntimeException("해당 주문과 연결된 가게가 존재하지 않습니다.");
+        }
+
         // 점주 소유 여부 체크
         UserEntity ownerEntity = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("해당 사용자가 존재하지 않습니다."));
@@ -413,26 +420,39 @@ public class OrderService {
             throw new RuntimeException("주문완료 외 상태인 주문은 변경할 수 없습니다.");
         }
 
+        UserEntity userEntity = orderEntity.getUser();
+
+        if (userEntity == null) {
+            throw new RuntimeException("주문자가 존재하지 않습니다.");
+        }
+
         orderEntity.setStatus(statusDTO.getNewStatus());
 
-        if ("주문취소".equals(statusDTO.getNewStatus())) {  // 주문취소일 경우...
-            UserEntity userEntity = orderEntity.getUser();
+        String message = "";
 
+        if ("주문취소".equals(statusDTO.getNewStatus())) {  // 주문취소일 경우...
             int originalDeposit = userEntity.getDeposit();
             int totalPrice = orderEntity.getTotalPrice();
 
             userEntity.setDeposit(originalDeposit + totalPrice);  // 주문이 취소되었기 때문에 보유금 원상복구
 
             userRepository.save(userEntity);
+
+            message = "주문이 취소됐습니다.";
         } else if ("배달완료".equals(statusDTO.getNewStatus())) {  // 배달완료일 경우...
             int ownerBalance = ownerEntity.getBalance();
             int totalPrice = orderEntity.getTotalPrice();
 
             ownerEntity.setBalance(ownerBalance + totalPrice);   // 주문이 수락되었기 때문에 점주 수익 반영
             userRepository.save(ownerEntity);
+
+            message = "주문이 수락됐습니다.";
         }
 
         orderRepository.save(orderEntity);
+        
+        // 주문자에게 주문 상태 변경 알림을 SSE로 보냄
+        //eventPublisher.publishEvent(new OrderStatusChangedEvent(userEntity.getUserId(), message));
     }
 
     /**

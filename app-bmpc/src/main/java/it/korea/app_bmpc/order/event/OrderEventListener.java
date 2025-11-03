@@ -7,6 +7,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 import it.korea.app_bmpc.order.entity.OrderEntity;
 import it.korea.app_bmpc.order.entity.OrderItemEntity;
 import it.korea.app_bmpc.order.repository.OrderRepository;
+import it.korea.app_bmpc.order.service.OrderSseService;
 import it.korea.app_bmpc.sms.service.SmsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,9 +19,10 @@ public class OrderEventListener {
 
     private final SmsService smsService;
     private final OrderRepository orderRepository;
+    private final OrderSseService orderSseService;
 
     /**
-     * 트랜잭션이 끝난 후 SMS 발송 이벤트 수행
+     * 장바구니 전체 주문 트랜잭션이 끝난 후 점주에게 SMS 발송 이벤트 수행
      * @param event
      */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -37,6 +39,21 @@ public class OrderEventListener {
             log.info("주문 {}번에 대한 문자 발송 완료", event.getOrderId());
         } catch (Exception e) {
             log.error("주문 {}번에 대한 문자 발송 중 오류 발생. {}", event.getOrderId(), e.getMessage());
+        }
+    }
+
+    /**
+     * 주문 상태 변경 트랜잭션이 끝난 후 주문자에게 SSE 발송 
+     */
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void handleOrderStatusChangedEvent(OrderStatusChangedEvent event) {
+        try {
+            log.info(event.getMessage());
+            orderSseService.sendEvent(event.getUserId(), event.getMessage());
+
+            log.info("주문자 {}에게 SSE 발송 완료", event.getUserId());
+        } catch (Exception e) {
+            log.error("주문자 {}에게 SSE 발송 중 오류 발생: {}", event.getUserId(), e.getMessage());
         }
     }
 
