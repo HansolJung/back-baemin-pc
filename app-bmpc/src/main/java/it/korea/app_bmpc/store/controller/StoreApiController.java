@@ -83,6 +83,24 @@ public class StoreApiController {
     }
 
     /**
+     * 내 가게 상세정보 가져오기
+     * @param userId 사용자 아이디
+     * @return
+     * @throws Exception
+     */
+    @PreAuthorize("hasRole('OWNER')") // ROLE_OWNER 권한이 있어야 접근 가능
+    @GetMapping("/store/my")
+    public ResponseEntity<?> getOwnerStore(@AuthenticationPrincipal UserSecureDTO user) throws Exception {
+
+        Map<String, Object> resultMap = new HashMap<>();
+        StoreDTO.OwnerDetail dto = storeService.getOwnerStore(user.getUserId());
+
+        resultMap.put("vo", dto);
+
+        return ResponseEntity.ok().body(ApiResponse.ok(resultMap));
+    }
+
+    /**
      * 가게 등록하기
      * @param request 가게 객체
      * @param user 로그인한 사용자

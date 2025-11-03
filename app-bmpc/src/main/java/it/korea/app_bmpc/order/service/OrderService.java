@@ -186,6 +186,41 @@ public class OrderService {
     }
 
     /**
+     * 내 가게 주문 내역 리스트 가져오기 (with Axios 호출)
+     * @param pageable 페이징 객체
+     * @param userId 사용자 아이디
+     * @return
+     * @throws Exception
+     */
+    @Transactional(readOnly = true)
+    public Map<String, Object> getOwnerStoreOrderList(Pageable pageable, String userId) throws Exception {
+
+        UserEntity ownerEntity = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("해당 사용자가 존재하지 않습니다."));
+
+        StoreEntity storeEntity = ownerEntity.getStore();
+        if (storeEntity == null) {
+            throw new RuntimeException("등록된 가게가 없습니다.");
+        }
+
+        Map<String, Object> resultMap = new HashMap<>();
+
+        Page<OrderEntity> pageList = orderRepository.findAllByStore_storeId(storeEntity.getStoreId(), pageable);
+
+        List<OrderDTO.Response> orderList = pageList.getContent().stream().map(OrderDTO.Response::of).toList();
+
+        PageVO pageVO = new PageVO();
+        pageVO.setData(pageList.getNumber(), (int) pageList.getTotalElements());
+
+        resultMap.put("total", pageList.getTotalElements());
+        resultMap.put("content", orderList);
+        resultMap.put("pageHTML", pageVO.pageHTML());
+        resultMap.put("page", pageList.getNumber());
+        
+        return resultMap;
+    }
+
+    /**
      * 주문 상세정보 가져오기
      * @param orderId 주문 아이디
      * @return

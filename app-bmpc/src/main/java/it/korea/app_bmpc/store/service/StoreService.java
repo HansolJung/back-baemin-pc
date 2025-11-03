@@ -95,6 +95,31 @@ public class StoreService {
     }
 
     /**
+     * 내 가게 상세정보 가져오기
+     * @param userId 사용자 아이디
+     * @return
+     * @throws Exception
+     */
+    @Transactional(readOnly = true)
+    public StoreDTO.OwnerDetail getOwnerStore(String userId) throws Exception {
+        
+        // 호출한 사용자 조회
+        UserEntity userEntity = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("해당 사용자가 존재하지 않습니다."));
+
+        // 가게를 가지고 있는지 확인
+        StoreEntity storeEntity = userEntity.getStore();
+        if (storeEntity == null) {
+            throw new RuntimeException("등록된 가게가 없습니다.");
+        }
+
+        int storeId = storeEntity.getStoreId();
+
+        return StoreDTO.OwnerDetail.of(storeRepository.getStore(storeId)
+            .orElseThrow(()-> new RuntimeException("해당 가게가 존재하지 않습니다.")));
+    }
+
+    /**
      * 가게 등록하기
      * @param request 가게 객체
      * @param userId 사용자 아이디

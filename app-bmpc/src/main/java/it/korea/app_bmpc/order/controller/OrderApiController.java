@@ -77,6 +77,25 @@ public class OrderApiController {
     }
 
     /**
+     * 내 가게의 주문내역 리스트 요청
+     * @param pageable 페이징 객체
+     * @param storeId 가게 아이디
+     * @param user 로그인한 사용자
+     * @return
+     * @throws Exception
+     */
+    @PreAuthorize("hasRole('OWNER')") // ROLE_OWNER 권한이 있어야 접근 가능
+    @GetMapping("/order/store/my")
+    public ResponseEntity<?> getOwnerStoreOrderList(@PageableDefault(page = 0, size = 10, 
+            sort = "orderDate", direction = Direction.DESC) Pageable pageable,
+            @AuthenticationPrincipal UserSecureDTO user) throws Exception {
+
+        Map<String, Object> resultMap = orderService.getOwnerStoreOrderList(pageable, user.getUserId());
+
+        return ResponseEntity.ok().body(ApiResponse.ok(resultMap));
+    }
+
+    /**
      * 주문내역 상세 보기
      * @param orderId 주문 아이디
      * @param user 로그인한 사용자

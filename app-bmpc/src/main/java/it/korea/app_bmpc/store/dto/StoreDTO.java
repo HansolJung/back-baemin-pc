@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -225,6 +226,75 @@ public class StoreDTO {
                 .isOpen(isOpen)
                 .hourComment(hourComment)
                 .businessHour(businessHour)
+                .build();
+        }
+    }
+
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Getter
+    public static class OwnerDetail {
+        private int storeId;
+        private String storeName;
+        private String branchName;
+        private String phone;
+        private String addr;
+        private String addrDetail;
+        private BigDecimal ratingAvg;
+        private int reviewCount;
+        private int minPrice;
+        private String origin;
+        private String notice;
+        private String delYn;
+        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+        private LocalDateTime createDate;
+        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+        private LocalDateTime updateDate;
+        private List<StoreFileDTO> fileList;
+        private List<StoreCategoryDTO> categoryList;
+        private List<MenuCategoryDTO.Response> menuCategoryList;
+        private List<StoreHourDTO> hourList;
+
+        public static OwnerDetail of(StoreEntity entity) {
+
+            // 파일 엔티티를 파일 DTO 로 객체 변환
+            // 바로 이때 파일 리스트가 SELECT 된다.
+            List<StoreFileDTO> fileList = 
+                entity.getFileList().stream().map(StoreFileDTO::of)
+                .sorted((o1, o2)-> o2.getMainYn().equals("Y") ? 1 : -1).toList();
+
+            List<StoreCategoryDTO> categoryList = 
+                entity.getCategoryList().stream().map(StoreCategoryDTO::of).toList();
+
+            List<MenuCategoryDTO.Response> menuCategoryList =
+                entity.getMenuCategoryList().stream()
+                //.filter(menuCategory -> "N".equals(menuCategory.getDelYn()))
+                .map(MenuCategoryDTO.Response::of).toList();
+
+            List<StoreHourDTO> hourList =
+                entity.getHourList().stream().map(StoreHourDTO::of)
+                    .sorted(Comparator.comparingInt(StoreHourDTO::getDayOfWeek)).toList();
+
+            return OwnerDetail.builder()
+                .storeId(entity.getStoreId())
+                .storeName(entity.getStoreName())
+                .branchName(entity.getBranchName())
+                .phone(entity.getPhone())
+                .addr(entity.getAddr())
+                .addrDetail(entity.getAddrDetail())
+                .ratingAvg(entity.getRatingAvg())
+                .reviewCount(entity.getReviewCount())
+                .minPrice(entity.getMinPrice())
+                .origin(entity.getOrigin())
+                .notice(entity.getNotice())
+                .delYn(entity.getDelYn())
+                .createDate(entity.getCreateDate())
+                .updateDate(entity.getUpdateDate())
+                .fileList(fileList)
+                .categoryList(categoryList)
+                .menuCategoryList(menuCategoryList)
+                .hourList(hourList)
                 .build();
         }
     }
