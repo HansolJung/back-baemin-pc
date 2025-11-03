@@ -110,7 +110,8 @@ public class StoreService {
         // 가게를 가지고 있는지 확인
         StoreEntity storeEntity = userEntity.getStore();
         if (storeEntity == null) {
-            throw new RuntimeException("등록된 가게가 없습니다.");
+            // 등록된 가게가 없으면 그냥 빈 데이터 돌려주기
+            return new StoreDTO.OwnerDetail();
         }
 
         int storeId = storeEntity.getStoreId();
