@@ -1,8 +1,10 @@
 package it.korea.app_bmpc.basket.service;
 
+import java.text.NumberFormat;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -151,7 +153,18 @@ public class BasketService {
             orderEntity.addItems(orderItemEntity);
         }
 
-       // 주문 총액 저장
+        // 주문 총액이 최소주문금액보다 큰지 체크
+        int minPrice = storeEntity.getMinPrice();
+        if (minPrice > totalPrice) {
+            NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.KOREA);
+            String formattedMinPrice = numberFormat.format(minPrice);
+
+            throw new RuntimeException(
+                "최소 주문 금액(" + formattedMinPrice + "원) 이상이어야 주문이 가능합니다."
+            );
+        }
+
+        // 주문 총액 저장
         orderEntity.setTotalPrice(totalPrice);
 
         // 보유금 차감
