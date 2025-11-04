@@ -204,6 +204,10 @@ public class BasketService {
             throw new RuntimeException("삭제된 메뉴입니다.");
         }
 
+        if ("Y".equals(menu.getSoldoutYn())) {
+            throw new RuntimeException("품절된 메뉴입니다.");
+        }
+
         MenuCategoryEntity menuCategory = menu.getMenuCategory();
 
         if ("Y".equals(menuCategory.getDelYn())) {

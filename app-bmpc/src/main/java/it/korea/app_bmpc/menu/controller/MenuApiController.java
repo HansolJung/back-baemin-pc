@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import it.korea.app_bmpc.common.dto.ApiResponse;
 import it.korea.app_bmpc.menu.dto.MenuCategoryDTO;
 import it.korea.app_bmpc.menu.dto.MenuDTO;
@@ -26,6 +28,7 @@ import it.korea.app_bmpc.user.dto.UserSecureDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+@Tag(name = "메뉴 API", description = "메뉴 카테고리, 메뉴, 메뉴 옵션 그룹, 메뉴 옵션 CURD 기능 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1")
@@ -40,6 +43,7 @@ public class MenuApiController {
      * @throws Exception
      */
     @GetMapping("/menu/{menuId}")
+    @Operation(summary = "메뉴 상세정보 가져오기")
     public ResponseEntity<?> getMenu(@PathVariable(name = "menuId") int menuId) throws Exception {
 
         Map<String, Object> resultMap = new HashMap<>();
@@ -59,6 +63,7 @@ public class MenuApiController {
      */
     @PreAuthorize("hasRole('OWNER')") // ROLE_OWNER 권한이 있어야 접근 가능
     @PostMapping("/menu/category")
+    @Operation(summary = "메뉴 카테고리 등록하기")
     public ResponseEntity<?> createMenuCategory(@Valid @RequestBody MenuCategoryDTO.Request request,
             @AuthenticationPrincipal UserSecureDTO user) throws Exception {
         
@@ -76,6 +81,7 @@ public class MenuApiController {
      */
     @PreAuthorize("hasRole('OWNER')") // ROLE_OWNER 권한이 있어야 접근 가능
     @PutMapping("/menu/category")
+    @Operation(summary = "메뉴 카테고리 수정하기")
     public ResponseEntity<?> updateMenuCategory(@Valid @RequestBody MenuCategoryDTO.Request request,
             @AuthenticationPrincipal UserSecureDTO user) throws Exception {
         
@@ -93,6 +99,7 @@ public class MenuApiController {
      */
     @PreAuthorize("hasRole('OWNER')") // ROLE_OWNER 권한이 있어야 접근 가능
     @DeleteMapping("/menu/category/{menuCategoryId}")
+    @Operation(summary = "메뉴 카테고리 삭제하기")
     public ResponseEntity<?> deleteMenuCategory(@PathVariable(name = "menuCategoryId") int menuCategoryId,
             @AuthenticationPrincipal UserSecureDTO user) throws Exception {
 
@@ -110,6 +117,7 @@ public class MenuApiController {
      */
     @PreAuthorize("hasRole('OWNER')") // ROLE_OWNER 권한이 있어야 접근 가능
     @PostMapping("/menu")
+    @Operation(summary = "메뉴 등록하기")
     public ResponseEntity<?> createMenu(@Valid @ModelAttribute MenuDTO.Request request,
             @AuthenticationPrincipal UserSecureDTO user) throws Exception {
         
@@ -127,6 +135,7 @@ public class MenuApiController {
      */
     @PreAuthorize("hasRole('OWNER')") // ROLE_OWNER 권한이 있어야 접근 가능
     @PutMapping("/menu")
+    @Operation(summary = "메뉴 수정하기")
     public ResponseEntity<?> updateMenu(@Valid @ModelAttribute MenuDTO.Request request, 
             @AuthenticationPrincipal UserSecureDTO user) throws Exception {
         
@@ -144,6 +153,7 @@ public class MenuApiController {
      */
     @PreAuthorize("hasRole('OWNER')") // ROLE_OWNER 권한이 있어야 접근 가능
     @DeleteMapping("/menu/{menuId}")
+    @Operation(summary = "메뉴 삭제하기")
     public ResponseEntity<?> deleteMenu(@PathVariable(name = "menuId") int menuId,
             @AuthenticationPrincipal UserSecureDTO user) throws Exception {
 
@@ -161,6 +171,7 @@ public class MenuApiController {
      */
     @PreAuthorize("hasRole('OWNER')") // ROLE_OWNER 권한이 있어야 접근 가능
     @PostMapping("/menu/group")
+    @Operation(summary = "메뉴 옵션 그룹 등록하기")
     public ResponseEntity<?> createMenuOptionGroup(@Valid @RequestBody MenuOptionGroupDTO.Request request,
             @AuthenticationPrincipal UserSecureDTO user) throws Exception {
         
@@ -178,6 +189,7 @@ public class MenuApiController {
      */
     @PreAuthorize("hasRole('OWNER')") // ROLE_OWNER 권한이 있어야 접근 가능
     @PutMapping("/menu/group")
+    @Operation(summary = "메뉴 옵션 그룹 수정하기")
     public ResponseEntity<?> updateMenuOptionGroup(@Valid @RequestBody MenuOptionGroupDTO.Request request,
             @AuthenticationPrincipal UserSecureDTO user) throws Exception {
 
@@ -195,6 +207,7 @@ public class MenuApiController {
      */
     @PreAuthorize("hasRole('OWNER')") // ROLE_OWNER 권한이 있어야 접근 가능
     @DeleteMapping("/menu/group/{menuOptGrpId}")
+    @Operation(summary = "메뉴 옵션 그룹 삭제하기")
     public ResponseEntity<?> deleteMenuOptionGroup(@PathVariable(name = "menuOptGrpId") int menuOptGrpId,
             @AuthenticationPrincipal UserSecureDTO user) throws Exception {
 
@@ -212,6 +225,7 @@ public class MenuApiController {
      */
     @PreAuthorize("hasRole('OWNER')") // ROLE_OWNER 권한이 있어야 접근 가능
     @PostMapping("/menu/option")
+    @Operation(summary = "메뉴 옵션 등록하기")
     public ResponseEntity<?> createMenuOption(@Valid @RequestBody MenuOptionDTO.Request request,
             @AuthenticationPrincipal UserSecureDTO user) throws Exception {
 
@@ -229,6 +243,7 @@ public class MenuApiController {
      */
     @PreAuthorize("hasRole('OWNER')") // ROLE_OWNER 권한이 있어야 접근 가능
     @PutMapping("/menu/option")
+    @Operation(summary = "메뉴 옵션 수정하기")
     public ResponseEntity<?> updateMenuOption(@Valid @RequestBody MenuOptionDTO.Request request,
             @AuthenticationPrincipal UserSecureDTO user) throws Exception {
 
@@ -246,6 +261,7 @@ public class MenuApiController {
      */
     @PreAuthorize("hasRole('OWNER')") // ROLE_OWNER 권한이 있어야 접근 가능
     @DeleteMapping("/menu/option/{menuOptId}")
+    @Operation(summary = "메뉴 옵션 삭제하기")
     public ResponseEntity<?> deleteMenuOption(@PathVariable(name = "menuOptId") int menuOptId,
             @AuthenticationPrincipal UserSecureDTO user) throws Exception {
 

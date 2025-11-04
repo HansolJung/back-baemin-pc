@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import it.korea.app_bmpc.common.dto.ApiResponse;
 import it.korea.app_bmpc.user.dto.UserDepositRequestDTO;
 import it.korea.app_bmpc.user.dto.UserRequestDTO;
@@ -19,6 +21,7 @@ import it.korea.app_bmpc.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+@Tag(name = "사용자 API", description = "내 정보 수정, 보유금 충전 등 사용자 기능 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1")
@@ -33,6 +36,7 @@ public class UserApiController {
      * @throws Exception
      */
     @PostMapping("/register")
+    @Operation(summary = "회원 가입하기")
     public ResponseEntity<?> register(@Valid @RequestBody // JSON 타입으로 받기 때문에 @RequestBody 사용
             UserRequestDTO userRequestDTO) throws Exception {
 
@@ -42,7 +46,7 @@ public class UserApiController {
     }
 
     /**
-     * 내 보유금 충전하기
+     * 나의 보유금 충전하기
      * @param request 보유금 객체
      * @param user 로그인한 사용자
      * @return
@@ -50,6 +54,7 @@ public class UserApiController {
      */
     @PreAuthorize("hasRole('USER')") // USER 권한이 있어야 접근 가능
     @PostMapping("/deposit/increase")
+    @Operation(summary = "나의 보유금 충전하기")
     public ResponseEntity<?> increaseDeposit(@Valid @RequestBody UserDepositRequestDTO request,
             @AuthenticationPrincipal UserSecureDTO user) throws Exception {
 
@@ -63,13 +68,14 @@ public class UserApiController {
     }
 
     /**
-     * 내 정보 수정하기
+     * 나의 정보 수정하기
      * @param request 사용자 객체
      * @param user 로그인한 사용자
      * @return
      * @throws Exception
      */
     @PutMapping("/user")
+    @Operation(summary = "나의 정보 수정하기")
     public ResponseEntity<?> updateUser(@Valid @RequestBody UserUpdateDTO request,
             @AuthenticationPrincipal UserSecureDTO user) throws Exception {
 
@@ -83,12 +89,13 @@ public class UserApiController {
     }
 
     /**
-     * 내 계정 탈퇴하기
+     * 나의 계정 탈퇴하기
      * @param user 로그인한 사용자
      * @return
      * @throws Exception
      */
     @DeleteMapping("/user")
+    @Operation(summary = "나의 계정 탈퇴하기")
     public ResponseEntity<?> deleteUser(@AuthenticationPrincipal UserSecureDTO user) throws Exception {
 
         userService.deleteUser(user.getUserId());

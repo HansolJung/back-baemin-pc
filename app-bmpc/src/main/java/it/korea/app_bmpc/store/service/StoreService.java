@@ -403,10 +403,28 @@ public class StoreService {
 
         entity.setDelYn("Y");  // 삭제 여부 Y로 변경 
         
-        // 하위 메뉴 카테고리들도 삭제
+        // 메뉴 카테고리 -> 메뉴 -> 메뉴옵션그룹 -> 메뉴옵션의 삭제 여부도 Y로 변경
         if (entity.getMenuCategoryList() != null && !entity.getMenuCategoryList().isEmpty()) {
             entity.getMenuCategoryList().forEach(menuCategory -> {
                 menuCategory.setDelYn("Y");
+
+                if (menuCategory.getMenuList() != null && !menuCategory.getMenuList().isEmpty()) {
+                    menuCategory.getMenuList().forEach(menu -> {
+                        menu.setDelYn("Y");
+
+                        if (menu.getMenuOptionGroupList() != null && !menu.getMenuOptionGroupList().isEmpty()) {
+                            menu.getMenuOptionGroupList().forEach(optionGroup -> {
+                                optionGroup.setDelYn("Y");
+
+                                if (optionGroup.getMenuOptionList() != null && !optionGroup.getMenuOptionList().isEmpty()) {
+                                    optionGroup.getMenuOptionList().forEach(option -> {
+                                        option.setDelYn("Y");
+                                    });
+                                }
+                            });
+                        }
+                    });
+                }
             });
         }
 

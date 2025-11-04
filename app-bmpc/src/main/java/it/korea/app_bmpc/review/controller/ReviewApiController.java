@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import it.korea.app_bmpc.common.dto.ApiResponse;
 import it.korea.app_bmpc.review.dto.ReviewDTO;
 import it.korea.app_bmpc.review.dto.ReviewReplyDTO;
@@ -26,6 +28,7 @@ import it.korea.app_bmpc.user.dto.UserSecureDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+@Tag(name = "리뷰 API", description = "리뷰와 리뷰 답변 CRUD API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1")
@@ -34,13 +37,14 @@ public class ReviewApiController {
     private final ReviewService reviewService;
 
     /**
-     * 가게의 리뷰 리스트 요청
+     * 가게의 리뷰 리스트 가져오기
      * @param pageable 페이징 객체
      * @param storeId 가게 아이디
      * @return
      * @throws Exception
      */
     @GetMapping("/review/store/{storeId}")
+    @Operation(summary = "가게의 리뷰 리스트 가져오기")
     public ResponseEntity<?> getStoreReviewList(@PageableDefault(page = 0, size = 10, 
             sort = "updateDate", direction = Direction.DESC) Pageable pageable,
             @PathVariable(name = "storeId") int storeId) throws Exception {
@@ -51,13 +55,14 @@ public class ReviewApiController {
     }
 
     /**
-     * 내 가게의 리뷰 리스트 요청
+     * 나의 가게의 리뷰 리스트 가져오기
      * @param pageable 페이징 객체
      * @return
      * @throws Exception
      */
     @PreAuthorize("hasRole('OWNER')") // ROLE_OWNER 권한이 있어야 접근 가능
     @GetMapping("/review/store/my")
+    @Operation(summary = "나의 가게의 리뷰 리스트 가져오기")
     public ResponseEntity<?> getOwnerStoreReviewList(@PageableDefault(page = 0, size = 10, 
             sort = "updateDate", direction = Direction.DESC) Pageable pageable,
             @AuthenticationPrincipal UserSecureDTO user) throws Exception {
@@ -68,7 +73,7 @@ public class ReviewApiController {
     }
 
     /**
-     * 사용자가 작성한 리뷰 리스트 요청
+     * 내가 작성한 리뷰 리스트 가져오기
      * @param pageable 페이징 객체
      * @param user 로그인한 사용자
      * @return
@@ -76,6 +81,7 @@ public class ReviewApiController {
      */
     @PreAuthorize("hasRole('USER')") // ROLE_USER 권한이 있어야 접근 가능
     @GetMapping("/review")
+    @Operation(summary = "내가 작성한 리뷰 리스트 가져오기")
     public ResponseEntity<?> getUserReviewList(@PageableDefault(page = 0, size = 10, 
             sort = "updateDate", direction = Direction.DESC) Pageable pageable,
             @AuthenticationPrincipal UserSecureDTO user) throws Exception {
@@ -94,6 +100,7 @@ public class ReviewApiController {
      */
     @PreAuthorize("hasRole('USER')") // ROLE_USER 권한이 있어야 접근 가능
     @PostMapping("/review")
+    @Operation(summary = "리뷰 등록하기")
     public ResponseEntity<?> createReview(@Valid @ModelAttribute ReviewDTO.Request request,
             @AuthenticationPrincipal UserSecureDTO user) throws Exception {
 
@@ -112,6 +119,7 @@ public class ReviewApiController {
      */
     @PreAuthorize("hasRole('USER')") // ROLE_USER 권한이 있어야 접근 가능
     @PutMapping("/review")
+    @Operation(summary = "리뷰 수정하기")
     public ResponseEntity<?> updateReview(@Valid @ModelAttribute ReviewDTO.Request request,
             @AuthenticationPrincipal UserSecureDTO user) throws Exception {
 
@@ -130,6 +138,7 @@ public class ReviewApiController {
      */
     @PreAuthorize("hasRole('USER')") // ROLE_USER 권한이 있어야 접근 가능
     @DeleteMapping("/review/{reviewId}")
+    @Operation(summary = "리뷰 삭제하기")
     public ResponseEntity<?> deleteReview(
             @PathVariable(name = "reviewId") int reviewId,
             @AuthenticationPrincipal UserSecureDTO user) throws Exception {
@@ -148,6 +157,7 @@ public class ReviewApiController {
      */
     @PreAuthorize("hasRole('OWNER')") // ROLE_OWNER 권한이 있어야 접근 가능
     @PostMapping("/review/reply")
+    @Operation(summary = "리뷰 답변 등록하기")
     public ResponseEntity<?> createReviewReply(@Valid @RequestBody ReviewReplyDTO.Request request,
             @AuthenticationPrincipal UserSecureDTO user) throws Exception {
                
@@ -166,6 +176,7 @@ public class ReviewApiController {
      */
     @PreAuthorize("hasRole('OWNER')") // ROLE_OWNER 권한이 있어야 접근 가능
     @PutMapping("/review/reply")
+    @Operation(summary = "리뷰 답변 수정하기")
     public ResponseEntity<?> updateReviewReply(@Valid @RequestBody ReviewReplyDTO.Request request,
             @AuthenticationPrincipal UserSecureDTO user) throws Exception {
                
@@ -184,6 +195,7 @@ public class ReviewApiController {
      */
     @PreAuthorize("hasRole('OWNER')") // ROLE_OWNER 권한이 있어야 접근 가능
     @DeleteMapping("/review/reply/{reviewReplyId}")
+    @Operation(summary = "리뷰 답변 삭제하기")
     public ResponseEntity<?> deleteReviewReply(@PathVariable(name = "reviewReplyId") int reviewReplyId,
             @AuthenticationPrincipal UserSecureDTO user) throws Exception {
                

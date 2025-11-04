@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import it.korea.app_bmpc.common.dto.ApiResponse;
 import it.korea.app_bmpc.common.utils.CookieUtils;
 import it.korea.app_bmpc.common.utils.JWTUtils;
@@ -17,6 +19,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
+@Tag(name = "refresh 토큰 API", description = "refresh 토큰을 이용한 재로그인 기능 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1")
@@ -33,6 +36,7 @@ public class RefreshTokenController {
      * @throws Exception
      */
     @GetMapping("/refresh")
+    @Operation(summary = "refresh 토큰으로 재로그인 하기")
     public ResponseEntity<?> refreshToken(HttpServletRequest request, HttpServletResponse response) throws Exception {
 
         Cookie[] cookies = request.getCookies();

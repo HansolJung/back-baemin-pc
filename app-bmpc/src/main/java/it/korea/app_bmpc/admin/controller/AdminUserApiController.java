@@ -16,6 +16,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.Hidden;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import it.korea.app_bmpc.admin.dto.AdminReviewSearchDTO;
 import it.korea.app_bmpc.admin.dto.AdminUserDTO;
 import it.korea.app_bmpc.admin.dto.AdminUserRequestDTO;
@@ -30,6 +33,7 @@ import it.korea.app_bmpc.review.service.ReviewService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+@Tag(name = "어드민 API", description = "회원 관리, 리뷰 관리 등 어드민 기능 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1")
@@ -47,6 +51,7 @@ public class AdminUserApiController {
      * @throws Exception
      */
     @GetMapping("/admin/user")
+    @Operation(summary = "회원 리스트 가져오기")
     public ResponseEntity<?> getUserList(@PageableDefault(page = 0, size = 10, 
             sort = "createDate", direction = Direction.DESC) Pageable pageable,
             AdminUserSearchDTO searchDTO) throws Exception {
@@ -63,6 +68,7 @@ public class AdminUserApiController {
      * @throws Exception
      */
     @GetMapping("/admin/user/{userId}")
+    @Operation(summary = "회원 상세 정보 가져오기")
     public ResponseEntity<?> getUser(@PathVariable(name = "userId") String userId) throws Exception {
         
         Map<String, Object> resultMap = new HashMap<>();
@@ -79,7 +85,8 @@ public class AdminUserApiController {
      * @return
      * @throws Exception
      */
-    @PostMapping(value = "/admin/user")  
+    @PostMapping(value = "/admin/user")
+    @Operation(summary = "회원 등록하기")
     public ResponseEntity<?> createUser(@Valid @RequestBody // JSON 타입으로 받기 때문에 @RequestBody 사용
             AdminUserRequestDTO userRequestDTO) throws Exception {
  
@@ -95,6 +102,7 @@ public class AdminUserApiController {
      * @throws Exception
      */
     @PutMapping(value = "/admin/user")
+    @Operation(summary = "회원 정보 수정하기")
     public ResponseEntity<?> updateUser(@Valid @RequestBody // JSON 타입으로 받기 때문에 @RequestBody 사용
             AdminUserUpdateRequestDTO userRequestDTO) throws Exception {
 
@@ -110,6 +118,7 @@ public class AdminUserApiController {
      * @throws Exception
      */
     @DeleteMapping("/admin/user/{userId}")
+    @Operation(summary = "회원 삭제하기")
     public ResponseEntity<?> deleteUser(@PathVariable(name = "userId") String userId) throws Exception {
   
         userService.deleteUser(userId);
@@ -125,6 +134,7 @@ public class AdminUserApiController {
      * @throws Exception
      */
     @GetMapping("/admin/order")
+    @Operation(summary = "주문 내역 리스트 가져오기")
     public ResponseEntity<?> getOrderList(@PageableDefault(page = 0, size = 10, 
             sort = "orderDate", direction = Direction.DESC) Pageable pageable,
             OrderSearchDTO searchDTO) throws Exception {
@@ -140,6 +150,7 @@ public class AdminUserApiController {
      * @return
      * @throws Exception
      */
+    @Hidden
     @PutMapping(value = "/admin/order")
     public ResponseEntity<?> updateStatus(@Valid @RequestBody // JSON 타입으로 받기 때문에 @RequestBody 사용
             OrderStatusDTO statusDTO) throws Exception {
@@ -157,6 +168,7 @@ public class AdminUserApiController {
      * @throws Exception
      */
     @GetMapping("/admin/review")
+    @Operation(summary = "리뷰 리스트 가져오기")
     public ResponseEntity<?> getReviewList(@PageableDefault(page = 0, size = 10, 
             sort = "updateDate", direction = Direction.DESC) Pageable pageable,
             AdminReviewSearchDTO searchDTO) throws Exception {
@@ -173,6 +185,7 @@ public class AdminUserApiController {
      * @throws Exception
      */
     @DeleteMapping("/admin/review/{reviewId}")
+    @Operation(summary = "리뷰 삭제하기")
     public ResponseEntity<?> deleteReview(@PathVariable(name = "reviewId") int reviewId) throws Exception {
 
         reviewService.deleteReviewByAdmin(reviewId);
@@ -187,6 +200,7 @@ public class AdminUserApiController {
      * @throws Exception
      */
     @DeleteMapping("/admin/review/reply/{reviewReplyId}")
+    @Operation(summary = "리뷰 답변 삭제하기")
     public ResponseEntity<?> deleteReviewReplyByAdmin(@PathVariable(name = "reviewReplyId") int reviewReplyId) throws Exception {
                
         reviewService.deleteReviewReplyByAdmin(reviewReplyId);

@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import it.korea.app_bmpc.common.dto.ApiResponse;
 import it.korea.app_bmpc.store.dto.CategoryDTO;
 import it.korea.app_bmpc.store.dto.StoreDTO;
@@ -28,6 +30,7 @@ import it.korea.app_bmpc.user.dto.UserSecureDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+@Tag(name = "가게 API", description = "회원 관리, 리뷰 관리 등 어드민 기능 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1")
@@ -41,6 +44,7 @@ public class StoreApiController {
      * @throws Exception
      */
     @GetMapping("/store/category")
+    @Operation(summary = "가게 카테고리 리스트 가져오기")
     public ResponseEntity<?> getCategoryList() throws Exception {
 
         List<CategoryDTO> categoryList = storeService.getCategoryList();
@@ -56,6 +60,7 @@ public class StoreApiController {
      * @throws Exception
      */
     @GetMapping("/store")
+    @Operation(summary = "가게 리스트 가져오기")
     public ResponseEntity<?> getStoreList(@PageableDefault(page = 0, size = 10, 
             sort = "updateDate", direction = Direction.DESC) Pageable pageable,
             StoreSearchDTO searchDTO) throws Exception {
@@ -72,6 +77,7 @@ public class StoreApiController {
      * @throws Exception
      */
     @GetMapping("/store/{storeId}")
+    @Operation(summary = "가게 상세정보 가져오기")
     public ResponseEntity<?> getStore(@PathVariable(name = "storeId") int storeId) throws Exception {
 
         Map<String, Object> resultMap = new HashMap<>();
@@ -83,13 +89,14 @@ public class StoreApiController {
     }
 
     /**
-     * 내 가게 상세정보 가져오기
+     * 나의 가게 상세정보 가져오기
      * @param userId 사용자 아이디
      * @return
      * @throws Exception
      */
     @PreAuthorize("hasRole('OWNER')") // ROLE_OWNER 권한이 있어야 접근 가능
     @GetMapping("/store/my")
+    @Operation(summary = "나의 가게 상세정보 가져오기")
     public ResponseEntity<?> getOwnerStore(@AuthenticationPrincipal UserSecureDTO user) throws Exception {
 
         Map<String, Object> resultMap = new HashMap<>();
@@ -109,6 +116,7 @@ public class StoreApiController {
      */
     @PreAuthorize("hasRole('OWNER')") // ROLE_OWNER 권한이 있어야 접근 가능
     @PostMapping("/store")
+    @Operation(summary = "가게 등록하기")
     public ResponseEntity<?> createStore(@Valid @ModelAttribute StoreDTO.Request request, 
             @AuthenticationPrincipal UserSecureDTO user) throws Exception {
         
@@ -126,6 +134,7 @@ public class StoreApiController {
      */
     @PreAuthorize("hasRole('OWNER')") // ROLE_OWNER 권한이 있어야 접근 가능
     @PutMapping("/store")
+    @Operation(summary = "가게 수정하기")
     public ResponseEntity<?> updateStore(@Valid @ModelAttribute StoreDTO.Request request,
             @AuthenticationPrincipal UserSecureDTO user) throws Exception {
         
@@ -143,6 +152,7 @@ public class StoreApiController {
      */
     @PreAuthorize("hasRole('OWNER')") // ROLE_OWNER 권한이 있어야 접근 가능
     @DeleteMapping("/store/{storeId}")
+    @Operation(summary = "가게 삭제하기")
     public ResponseEntity<?> deleteStore(@PathVariable(name = "storeId") int storeId,
             @AuthenticationPrincipal UserSecureDTO user) throws Exception {
  

@@ -17,6 +17,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.Hidden;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import it.korea.app_bmpc.common.dto.ApiResponse;
 import it.korea.app_bmpc.order.dto.OrderDTO;
 import it.korea.app_bmpc.order.dto.OrderStatusDTO;
@@ -25,6 +28,7 @@ import it.korea.app_bmpc.user.dto.UserSecureDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+@Tag(name = "주문 API", description = "주문 내역 보기, 주문 상태 변경 등 주문 관련 기능 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1")
@@ -33,7 +37,7 @@ public class OrderApiController {
     private final OrderService orderService;
 
     /**
-     * 나의 주문내역 리스트 요청
+     * 나의 주문내역 리스트 가져오기
      * @param pageable 페이징 객체
      * @param user 로그인한 사용자
      * @return
@@ -41,6 +45,7 @@ public class OrderApiController {
      */
     @PreAuthorize("hasRole('USER')") // ROLE_USER 권한이 있어야 접근 가능
     @GetMapping("/order/my")
+    @Operation(summary = "나의 주문내역 리스트 가져오기")
     public ResponseEntity<?> getMyOrderList(@PageableDefault(page = 0, size = 10, 
             sort = "orderDate", direction = Direction.DESC) Pageable pageable,
             @AuthenticationPrincipal UserSecureDTO user) throws Exception {
@@ -51,7 +56,7 @@ public class OrderApiController {
     }
 
     /**
-     * 가게의 주문내역 리스트 요청
+     * 가게의 주문내역 리스트 가져오기
      * @param pageable 페이징 객체
      * @param storeId 가게 아이디
      * @param user 로그인한 사용자
@@ -60,6 +65,7 @@ public class OrderApiController {
      */
     @PreAuthorize("hasRole('OWNER')") // ROLE_OWNER 권한이 있어야 접근 가능
     @GetMapping("/order/store/{storeId}")
+    @Operation(summary = "가게의 주문내역 리스트 가져오기")
     public ResponseEntity<?> getStoreOrderList(@PageableDefault(page = 0, size = 10, 
             sort = "orderDate", direction = Direction.DESC) Pageable pageable,
             @PathVariable(name = "storeId") int storeId,
@@ -71,7 +77,7 @@ public class OrderApiController {
     }
 
     /**
-     * 내 가게의 주문내역 리스트 요청
+     * 나의 가게의 주문내역 리스트 가져오기
      * @param pageable 페이징 객체
      * @param storeId 가게 아이디
      * @param user 로그인한 사용자
@@ -80,6 +86,7 @@ public class OrderApiController {
      */
     @PreAuthorize("hasRole('OWNER')") // ROLE_OWNER 권한이 있어야 접근 가능
     @GetMapping("/order/store/my")
+    @Operation(summary = "나의 가게의 주문내역 리스트 가져오기")
     public ResponseEntity<?> getOwnerStoreOrderList(@PageableDefault(page = 0, size = 10, 
             sort = "orderDate", direction = Direction.DESC) Pageable pageable,
             @AuthenticationPrincipal UserSecureDTO user) throws Exception {
@@ -90,12 +97,13 @@ public class OrderApiController {
     }
 
     /**
-     * 주문내역 상세 보기
+     * 주문내역 상세 가져오기
      * @param orderId 주문 아이디
      * @param user 로그인한 사용자
      * @return
      * @throws Exception
      */
+    @Hidden
     @PreAuthorize("hasRole('USER')") // ROLE_USER 권한이 있어야 접근 가능
     @GetMapping("/order/{orderId}")
     public ResponseEntity<?> getOrderDetail(@PathVariable(name = "orderId") int orderId,
@@ -120,6 +128,7 @@ public class OrderApiController {
      */
     @PreAuthorize("hasRole('OWNER')") // ROLE_OWNER 권한이 있어야 접근 가능
     @PutMapping("/order/status")
+    @Operation(summary = "주문 상태 변경하기 (주문취소 or 배달완료)")
     public ResponseEntity<?> changeStatus(@Valid @RequestBody OrderStatusDTO request,
             @AuthenticationPrincipal UserSecureDTO user) throws Exception {
 
@@ -135,6 +144,7 @@ public class OrderApiController {
      * @return
      * @throws Exception
      */
+    @Hidden
     @PostMapping("/order")
     public ResponseEntity<?> orderMenu(@Valid @RequestBody OrderDTO.Request request,
             @AuthenticationPrincipal UserSecureDTO user) throws Exception {
@@ -154,6 +164,7 @@ public class OrderApiController {
      */
     @PreAuthorize("hasRole('OWNER')") // ROLE_OWNER 권한이 있어야 접근 가능
     @GetMapping("/order/store/{storeId}/sales")
+    @Operation(summary = "가게 기간별 매출 통계 구하기")
     public ResponseEntity<?> getStoreSalesStat(
             @PathVariable(name = "storeId") int storeId,
             @AuthenticationPrincipal UserSecureDTO user) throws Exception {
