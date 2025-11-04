@@ -32,8 +32,9 @@ public class MenuCategoryDTO {
         private List<MenuDTO.Response> menuList;
 
         public static Response of(MenuCategoryEntity entity) {
-
-            List<MenuDTO.Response> menuList = entity.getMenuList().stream().map(MenuDTO.Response::of).toList();
+            List<MenuDTO.Response> menuList = 
+                entity.getMenuList().stream().filter(menu -> "N".equals(menu.getDelYn()))
+                    .map(MenuDTO.Response::of).toList();
 
             return Response.builder()
                 .menuCaId(entity.getMenuCaId())

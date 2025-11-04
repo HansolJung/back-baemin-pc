@@ -3,6 +3,7 @@ package it.korea.app_bmpc.basket.dto;
 import java.util.List;
 
 import it.korea.app_bmpc.basket.entity.BasketEntity;
+import it.korea.app_bmpc.store.entity.StoreEntity;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -23,6 +24,7 @@ public class BasketDTO {
         private int basketId;
         private int totalPrice;
         private List<BasketItemDTO> itemList;
+        private Integer storeId;
 
         public static Detail of(BasketEntity entity) {
 
@@ -30,10 +32,13 @@ public class BasketDTO {
                 .map(BasketItemDTO::of)
                 .toList();
 
+            StoreEntity store = entity.getStore();
+
             return Detail.builder()
                 .basketId(entity.getBasketId())
                 .totalPrice(entity.getTotalPrice())
                 .itemList(itemList)
+                .storeId(store == null ? null : store.getStoreId())
                 .build();
         }
     }

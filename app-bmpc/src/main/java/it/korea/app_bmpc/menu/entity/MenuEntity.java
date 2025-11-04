@@ -1,11 +1,7 @@
 package it.korea.app_bmpc.menu.entity;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
-import org.hibernate.annotations.SQLRestriction;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import it.korea.app_bmpc.common.entity.BaseEntity;
 import jakarta.persistence.CascadeType;
@@ -28,7 +24,6 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "bmpc_menu")
-@SQLRestriction("del_yn = 'N'")
 public class MenuEntity extends BaseEntity {
 
     @Id
@@ -50,10 +45,8 @@ public class MenuEntity extends BaseEntity {
 
     // 메뉴 옵션 그룹 매핑
     @OneToMany(mappedBy = "menu", cascade = CascadeType.ALL, orphanRemoval = true) // 기본적으로 fetch = FetchType.LAZY
-    @Fetch(FetchMode.SUBSELECT) // N+1 문제를 해결하기 위한 설정, 주 엔티티를 조회한 후, 연관 엔티티들은 서브 쿼리(SUBSELECT)를 사용하여 한 번에 일괄적으로 조회하여 불필요한 추가 쿼리 발생을 막아줌.
-    // 데이터가 적을 경우에만 해당 옵션을 사용할 것.
     @OrderBy("displayOrder ASC")
-    private List<MenuOptionGroupEntity> menuOptionGroupList = new ArrayList<>();
+    private Set<MenuOptionGroupEntity> menuOptionGroupList = new LinkedHashSet<>();
 
     // 파일(이미지) 매핑
     // 파일과 1:1 양방향 관계
@@ -62,10 +55,6 @@ public class MenuEntity extends BaseEntity {
 
     // 메뉴 추가
     public void addMenuOptionGroup(MenuOptionGroupEntity entity, boolean isUpdate) {
-        if (menuOptionGroupList == null) {
-            this.menuOptionGroupList = new ArrayList<>();
-        }
-
         entity.setMenu(this);
         menuOptionGroupList.add(entity);
 

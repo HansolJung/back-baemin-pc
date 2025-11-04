@@ -1,5 +1,6 @@
 package it.korea.app_bmpc.handler;
 
+import java.io.IOException;
 import java.util.List;
 
 import javax.naming.AuthenticationException;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.async.AsyncRequestTimeoutException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import it.korea.app_bmpc.common.dto.ApiErrorResponse;
@@ -167,6 +169,16 @@ public class CommonExceptionHandler {
 
         ApiErrorResponse apiErrorResponse = getApiErrorResponse("E500", message);
         return ResponseEntity.status(ErrorCodeEnum.INTERNAL_SERVER_ERROR.getStatus()).body(apiErrorResponse);
+    }
+
+    /**
+     * SSE 연결 종료시 발생하는 예외 처리
+     * @param e
+     */
+    @ExceptionHandler({IOException.class, AsyncRequestTimeoutException.class})
+    protected void handleSseEmitterException(Exception e) {
+        // 단순히 로그만 찍기
+        log.warn("SSE 연결 종료: {}", e.getMessage());
     }
 
     private ApiErrorResponse getApiErrorResponse(String errorCode, String message) {

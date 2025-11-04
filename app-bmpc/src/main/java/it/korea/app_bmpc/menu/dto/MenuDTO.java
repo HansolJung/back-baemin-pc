@@ -98,8 +98,9 @@ public class MenuDTO {
                 image = MenuFileDTO.of(entity.getFile());
             }
 
-            List<MenuOptionGroupDTO.Response> menuOptionGroupList = 
-                entity.getMenuOptionGroupList().stream().map(MenuOptionGroupDTO.Response::of).toList();
+            List<MenuOptionGroupDTO.Response> menuOptionGroupList =
+                entity.getMenuOptionGroupList().stream().filter(mog -> "N".equals(mog.getDelYn()))
+                    .map(MenuOptionGroupDTO.Response::of).toList();
 
             return Detail.builder()
                 .menuId(entity.getMenuId())

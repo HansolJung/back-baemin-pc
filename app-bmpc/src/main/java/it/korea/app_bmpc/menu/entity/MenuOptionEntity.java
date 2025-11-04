@@ -1,7 +1,5 @@
 package it.korea.app_bmpc.menu.entity;
 
-import org.hibernate.annotations.SQLRestriction;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -18,7 +16,6 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "bmpc_menu_option")
-@SQLRestriction("del_yn = 'N'")
 public class MenuOptionEntity {
 
     @Id

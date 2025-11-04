@@ -43,6 +43,9 @@ public class OrderSseService {
                 emitter.send(SseEmitter.event().name("order-status").data(message));
             } catch (IOException e) {
                 emitters.remove(userId);
+                try {
+                    emitter.complete();
+                } catch (Exception ignore) {}  // 로그 출력 방지
             }
         }
     }

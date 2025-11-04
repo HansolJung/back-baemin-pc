@@ -11,14 +11,15 @@ import it.korea.app_bmpc.menu.entity.MenuEntity;
 
 public interface MenuRepository extends JpaRepository<MenuEntity, Integer> {
 
-    // fetch join 사용해서 N + 1 문제 해결
-    // left join fetch m.menuOptionGroupList mog <-- subselect 로 해결
-    // left join fetch mog.menuOptionList mol <-- subselect 로 해결
     @Query("""
-        select distinct m from MenuEntity m 
+        select distinct m
+        from MenuEntity m
         left join fetch m.file
-        where m.menuId =:menuId
-        """)
+        left join fetch m.menuOptionGroupList mog
+        left join fetch mog.menuOptionList mol
+        where m.menuId = :menuId
+        and m.delYn = 'N'
+    """)
     Optional<MenuEntity> getMenu(@Param("menuId") int menuId);
 
     // 반드시 연결되어 있어야 하기 때문에 left join 대신 (inner) join 사용

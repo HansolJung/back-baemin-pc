@@ -162,11 +162,9 @@ public class StoreDTO {
             List<StoreCategoryDTO> categoryList = 
                 entity.getCategoryList().stream().map(StoreCategoryDTO::of).toList();
 
-            List<MenuCategoryDTO.Response> menuCategoryList =
-                entity.getMenuCategoryList().stream()
-                //.filter(menuCategory -> "N".equals(menuCategory.getDelYn()))
-                .map(MenuCategoryDTO.Response::of).toList();
-
+            List<MenuCategoryDTO.Response> menuCategoryList = 
+                entity.getMenuCategoryList().stream().filter(menuCategory -> "N".equals(menuCategory.getDelYn()))
+                    .map(MenuCategoryDTO.Response::of).toList();
 
             // 오늘 요일 구하기 (1=월, 2=화, ... 7=일)
             int today = LocalDate.now().getDayOfWeek().getValue();
@@ -267,10 +265,9 @@ public class StoreDTO {
             List<StoreCategoryDTO> categoryList = 
                 entity.getCategoryList().stream().map(StoreCategoryDTO::of).toList();
 
-            List<MenuCategoryDTO.Response> menuCategoryList =
-                entity.getMenuCategoryList().stream()
-                //.filter(menuCategory -> "N".equals(menuCategory.getDelYn()))
-                .map(MenuCategoryDTO.Response::of).toList();
+            List<MenuCategoryDTO.Response> menuCategoryList = 
+                entity.getMenuCategoryList().stream().filter(menuCategory -> "N".equals(menuCategory.getDelYn()))
+                    .map(MenuCategoryDTO.Response::of).toList();
 
             List<StoreHourDTO> hourList =
                 entity.getHourList().stream().map(StoreHourDTO::of)
@@ -343,7 +340,7 @@ public class StoreDTO {
         private LocalTime openTime;
         @NotNull(message = "마감 시간은 필수 항목입니다.")
         private LocalTime closeTime;
-        @NotBlank(message = "휴우 여부는 필수 항목입니다.")
+        @NotBlank(message = "휴무 여부는 필수 항목입니다.")
         @Pattern(regexp = "^[YN]$", message = "휴무 여부는 'Y' 또는 'N'이어야 합니다.")
         private String closeYn;      
     }

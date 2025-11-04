@@ -1,6 +1,6 @@
 package it.korea.app_bmpc.basket.entity;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import it.korea.app_bmpc.store.entity.StoreEntity;
@@ -15,6 +15,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
@@ -42,7 +43,8 @@ public class BasketEntity {
 
     // 장바구니 항목 매핑
     @OneToMany(mappedBy = "basket", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<BasketItemEntity> itemList = new HashSet<>();
+    @OrderBy("basketItemId ASC")
+    private Set<BasketItemEntity> itemList = new LinkedHashSet<>();
 
     // 장바구니 항목 추가
     public void addItem(BasketItemEntity entity) {

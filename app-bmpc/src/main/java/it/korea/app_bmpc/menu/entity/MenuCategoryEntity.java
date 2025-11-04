@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
-import org.hibernate.annotations.SQLRestriction;
 
 import it.korea.app_bmpc.common.entity.BaseCreateTimeEntity;
 import it.korea.app_bmpc.store.entity.StoreEntity;
@@ -27,7 +26,6 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "bmpc_menu_category")
-@SQLRestriction("del_yn = 'N'")
 public class MenuCategoryEntity extends BaseCreateTimeEntity {
 
     @Id

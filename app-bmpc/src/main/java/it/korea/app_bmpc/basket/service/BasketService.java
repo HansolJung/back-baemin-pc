@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.context.ApplicationEventPublisher;
@@ -15,6 +16,7 @@ import it.korea.app_bmpc.basket.entity.BasketEntity;
 import it.korea.app_bmpc.basket.entity.BasketItemEntity;
 import it.korea.app_bmpc.basket.entity.BasketItemOptionEntity;
 import it.korea.app_bmpc.basket.repository.BasketRepository;
+import it.korea.app_bmpc.menu.entity.MenuCategoryEntity;
 import it.korea.app_bmpc.menu.entity.MenuEntity;
 import it.korea.app_bmpc.menu.entity.MenuOptionEntity;
 import it.korea.app_bmpc.menu.repository.MenuOptionRepository;
@@ -76,8 +78,27 @@ public class BasketService {
         BasketEntity basketEntity = basketRepository.findByUser_userId(request.getUserId())
             .orElseThrow(() -> new RuntimeException("해당 사용자가 가진 장바구니가 존재하지 않습니다."));
 
-        if (basketEntity.getItemList().isEmpty()) {
+        StoreEntity storeEntity = basketEntity.getStore();
+        if (storeEntity == null || "Y".equals(storeEntity.getDelYn())) {
+            throw new RuntimeException("삭제된 가게의 메뉴는 주문할 수 없습니다.");
+        }
+
+        Set<BasketItemEntity> basketItemList = basketEntity.getItemList();
+        if (basketItemList.isEmpty()) {
             throw new RuntimeException("장바구니가 비어 있습니다.");
+        }
+
+        // 장바구니에 담았던 메뉴들의 상태 체크
+        for (BasketItemEntity basketItem : basketEntity.getItemList()) {
+            MenuEntity menu = basketItem.getMenu();
+
+            if (menu == null || "Y".equals(menu.getDelYn())) {
+                throw new RuntimeException("[" + basketItem.getMenuName() + "] 메뉴는 현재 삭제된 메뉴입니다. 주문할 수 없습니다.");
+            }
+
+            if ("Y".equals(menu.getSoldoutYn())) {
+                throw new RuntimeException("[" + basketItem.getMenuName() + "] 메뉴는 현재 품절 상태입니다. 주문할 수 없습니다.");
+            }
         }
 
         // 장바구니 총액
@@ -94,22 +115,17 @@ public class BasketService {
 
         // 주문 생성
         OrderEntity orderEntity = new OrderEntity();
-        orderEntity.setUser(basketEntity.getUser());
-        orderEntity.setStore(basketEntity.getStore());
+        orderEntity.setUser(userEntity);
+        orderEntity.setStore(storeEntity);
         orderEntity.setOrderDate(LocalDateTime.now());
         orderEntity.setStatus("주문완료");
         orderEntity.setAddr(request.getAddr());
         orderEntity.setAddrDetail(request.getAddrDetail());
 
         // 장바구니 항목을 주문 아이템으로 변환
-        for (BasketItemEntity basketItemEntity : basketEntity.getItemList()) {
+        for (BasketItemEntity basketItemEntity : basketItemList) {
 
             MenuEntity menuEntity = basketItemEntity.getMenu();
-
-            // 메뉴의 품절 여부가 Y 인경우...
-            if ("Y".equals(menuEntity.getSoldoutYn())) {
-                throw new RuntimeException("[" + menuEntity.getMenuName() + "] 메뉴는 현재 품절 상태입니다. 주문할 수 없습니다.");
-            }
 
             OrderItemEntity orderItemEntity = new OrderItemEntity();
             orderItemEntity.setMenu(menuEntity);
@@ -184,7 +200,21 @@ public class BasketService {
         MenuEntity menu = menuRepository.findById(menuReq.getMenuId())
             .orElseThrow(() -> new RuntimeException("장바구니에 담을 메뉴가 존재하지 않습니다."));
 
-        StoreEntity store = menu.getMenuCategory().getStore();
+        if ("Y".equals(menu.getDelYn())) {
+            throw new RuntimeException("삭제된 메뉴입니다.");
+        }
+
+        MenuCategoryEntity menuCategory = menu.getMenuCategory();
+
+        if ("Y".equals(menuCategory.getDelYn())) {
+            throw new RuntimeException("삭제된 메뉴 카테고리 하위에 있는 메뉴는 장바구니에 담을 수 없습니다.");
+        }
+
+        StoreEntity store = menuCategory.getStore();
+
+        if ("Y".equals(store.getDelYn())) {
+            throw new RuntimeException("삭제된 가게 하위에 있는 메뉴는 장바구니에 담을 수 없습니다.");
+        }
 
         BasketEntity basketEntity = basketRepository.findByUser_userId(request.getUserId())
             .orElse(null);
@@ -334,6 +364,11 @@ public class BasketService {
             .findFirst()
             .orElseThrow(() -> new RuntimeException("해당 메뉴가 장바구니에 없습니다."));
 
+        // 메뉴 삭제 여부 확인
+        if (basketItemEntity.getMenu() == null || "Y".equals(basketItemEntity.getMenu().getDelYn())) {
+            throw new RuntimeException("해당 메뉴는 현재 삭제된 메뉴입니다. 수량을 변경할 수 없습니다.");
+        }
+
         basketItemEntity.setQuantity(basketItemEntity.getQuantity() + 1);
 
         int totalItemPrice = basketItemEntity.getMenuPrice() * basketItemEntity.getQuantity();
@@ -374,6 +409,11 @@ public class BasketService {
             .filter(item -> item.getBasketItemId() == basketItemId)
             .findFirst()
             .orElseThrow(() -> new RuntimeException("해당 메뉴가 장바구니에 없습니다."));
+
+        // 메뉴 삭제 여부 확인
+        if (basketItemEntity.getMenu() == null || "Y".equals(basketItemEntity.getMenu().getDelYn())) {
+            throw new RuntimeException("해당 메뉴는 현재 삭제된 메뉴입니다. 수량을 변경할 수 없습니다.");
+        }
 
         // 수량이 1 보다 큰 경우에만 감소
         if (basketItemEntity.getQuantity() > 1) {

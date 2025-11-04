@@ -239,6 +239,10 @@ public class StoreService {
         StoreEntity entity = storeRepository.getStore(request.getStoreId())   
             .orElseThrow(()-> new RuntimeException("해당 가게가 존재하지 않습니다."));
 
+        if ("Y".equals(entity.getDelYn())) {
+            throw new RuntimeException("삭제된 가게는 수정할 수 없습니다.");
+        }
+
         // 점주 소유 여부 확인
         UserEntity userEntity = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("해당 사용자가 존재하지 않습니다."));
@@ -385,6 +389,10 @@ public class StoreService {
         StoreEntity entity = storeRepository.getStore(storeId)   // fetch join 을 사용한 getStore 메서드 호출
             .orElseThrow(()-> new RuntimeException("해당 가게가 존재하지 않습니다."));
 
+        if ("Y".equals(entity.getDelYn())) {
+            throw new RuntimeException("이미 삭제된 가게입니다.");
+        }
+
         // 점주 소유 여부 확인
         UserEntity userEntity = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("해당 사용자가 존재하지 않습니다."));
@@ -393,7 +401,14 @@ public class StoreService {
             throw new RuntimeException("해당 가게를 수정할 권한이 없습니다.");
         }
 
-        entity.setDelYn("Y");  // 삭제 여부 Y로 변경    
+        entity.setDelYn("Y");  // 삭제 여부 Y로 변경 
+        
+        // 하위 메뉴 카테고리들도 삭제
+        if (entity.getMenuCategoryList() != null && !entity.getMenuCategoryList().isEmpty()) {
+            entity.getMenuCategoryList().forEach(menuCategory -> {
+                menuCategory.setDelYn("Y");
+            });
+        }
 
         storeRepository.save(entity);
 
@@ -401,9 +416,6 @@ public class StoreService {
         // 점주의 storeId 비우기
         userEntity.setStore(null);
         userRepository.save(userEntity);
-
-        // 모든 사람들의 장바구니에서 해당 가게 내용들 전부 삭제하기
-        //basketRepository.deleteAllByStore_storeId(entity.getStoreId());
 
         // 가게의 삭제 여부를 Y 로 변경만하고 가게의 이미지들은 삭제하지 않음
         // 왜냐하면 주문 내역 등에서 해당 가게의 상세 정보를 보여줘야 하기 때문

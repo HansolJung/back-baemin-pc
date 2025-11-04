@@ -32,8 +32,9 @@ public class MenuOptionGroupDTO {
 
         public static Response of(MenuOptionGroupEntity entity) {
 
-            List<MenuOptionDTO.Response> menuOptionList = 
-                entity.getMenuOptionList().stream().map(MenuOptionDTO.Response::of).toList();
+            List<MenuOptionDTO.Response> menuOptionList =
+                entity.getMenuOptionList().stream().filter(mo -> "N".equals(mo.getDelYn()))
+                    .map(MenuOptionDTO.Response::of).toList();
 
             return Response.builder()
                 .menuOptGrpId(entity.getMenuOptGrpId())

@@ -69,6 +69,10 @@ public class MenuService {
         StoreEntity storeEntity = storeRepository.findById(request.getStoreId())
             .orElseThrow(()-> new RuntimeException("해당 가게가 존재하지 않습니다."));
 
+        if ("Y".equals(storeEntity.getDelYn())) {
+            throw new RuntimeException("삭제된 가게 하위엔 메뉴 카테고리를 등록할 수 없습니다.");
+        }
+
         // 점주 소유 여부 체크
         UserEntity userEntity = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("해당 사용자가 존재하지 않습니다."));
@@ -122,14 +126,14 @@ public class MenuService {
             throw new RuntimeException("삭제된 메뉴 카테고리는 수정할 수 없습니다.");
         }
 
+        StoreEntity storeEntity = entity.getStore();
+        if (storeEntity == null || "Y".equals(storeEntity.getDelYn())) {
+            throw new RuntimeException("삭제된 가게 하위에 있는 메뉴 카테고리는 수정할 수 없습니다.");
+        }
+
         // 점주 소유 여부 체크
         UserEntity userEntity = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("해당 사용자가 존재하지 않습니다."));
-        
-        StoreEntity storeEntity = entity.getStore();
-        if (storeEntity == null) {
-            throw new RuntimeException("삭제된 가게 하위에 있는 메뉴 카테고리는 수정할 수 없습니다.");
-        }
 
         if (userEntity.getStore() == null || userEntity.getStore().getStoreId() != storeEntity.getStoreId()) {
             throw new RuntimeException("해당 가게에 대한 권한이 없습니다.");
@@ -193,11 +197,20 @@ public class MenuService {
         MenuCategoryEntity category = menuCategoryRepository.findById(request.getMenuCategoryId())
             .orElseThrow(() -> new RuntimeException("해당 메뉴 카테고리가 존재하지 않습니다."));
 
+        if ("Y".equals(category.getDelYn())) {
+            throw new RuntimeException("삭제된 메뉴 카테고리 하위엔 메뉴를 등록할 수 없습니다.");
+        }
+
+        StoreEntity store = category.getStore();
+        if (store == null || "Y".equals(store.getDelYn())) {
+            throw new RuntimeException("삭제된 가게 하위엔 메뉴를 등록할 수 없습니다.");
+        }
+
         // 점주 소유 여부 체크
         UserEntity userEntity = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("해당 사용자가 존재하지 않습니다."));
 
-        if (userEntity.getStore() == null || userEntity.getStore().getStoreId() != category.getStore().getStoreId()) {
+        if (userEntity.getStore() == null || userEntity.getStore().getStoreId() != store.getStoreId()) {
             throw new RuntimeException("해당 가게에 대한 권한이 없습니다.");
         }
 
@@ -247,15 +260,20 @@ public class MenuService {
         }
 
         MenuCategoryEntity category = entity.getMenuCategory();
-        if (category == null) {
+        if (category == null || "Y".equals(category.getDelYn())) {
             throw new RuntimeException("삭제된 메뉴 카테고리 하위에 있는 메뉴는 수정할 수 없습니다.");
+        }
+
+        StoreEntity store = category.getStore();
+        if (store == null || "Y".equals(store.getDelYn())) {
+            throw new RuntimeException("삭제된 가게 하위에 있는 메뉴는 수정할 수 없습니다.");
         }
 
         // 점주 소유 여부 체크
         UserEntity userEntity = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("해당 사용자가 존재하지 않습니다."));
 
-        if (userEntity.getStore() == null || userEntity.getStore().getStoreId() != category.getStore().getStoreId()) {
+        if (userEntity.getStore() == null || userEntity.getStore().getStoreId() != store.getStoreId()) {
             throw new RuntimeException("해당 가게에 대한 권한이 없습니다.");
         }
 
@@ -330,16 +348,25 @@ public class MenuService {
         MenuEntity menuEntity = menuRepository.findById(request.getMenuId())
             .orElseThrow(() -> new RuntimeException("해당 메뉴가 존재하지 않습니다."));
 
+        if ("Y".equals(menuEntity.getDelYn())) {
+            throw new RuntimeException("삭제된 메뉴 하위엔 새로운 옵션 그룹을 등록할 수 없습니다.");
+        }
+
         MenuCategoryEntity category = menuEntity.getMenuCategory();
-        if (category == null) {
+        if (category == null || "Y".equals(category.getDelYn())) {
             throw new RuntimeException("삭제된 메뉴 카테고리 하위엔 새로운 옵션 그룹을 등록할 수 없습니다.");
+        }
+
+        StoreEntity store = category.getStore();
+        if (store == null || "Y".equals(store.getDelYn())) {
+            throw new RuntimeException("삭제된 가게 하위엔 새로운 옵션 그룹을 등록할 수 없습니다.");
         }
 
         // 점주 소유 여부 체크
         UserEntity userEntity = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("해당 사용자가 존재하지 않습니다."));
 
-        if (userEntity.getStore() == null || userEntity.getStore().getStoreId() != category.getStore().getStoreId()) {
+        if (userEntity.getStore() == null || userEntity.getStore().getStoreId() != store.getStoreId()) {
             throw new RuntimeException("해당 가게에 대한 권한이 없습니다.");
         }
 
@@ -388,28 +415,33 @@ public class MenuService {
         // 기존 옵션 그룹 조회
         MenuOptionGroupEntity entity = menuOptionGroupRepository.findById(request.getMenuOptGrpId())
             .orElseThrow(() -> new RuntimeException("해당 메뉴 옵션 그룹이 존재하지 않습니다."));
+        
+        // 삭제 여부 확인
+        if ("Y".equals(entity.getDelYn())) {
+            throw new RuntimeException("삭제된 옵션 그룹은 수정할 수 없습니다.");
+        }
 
         MenuEntity menuEntity = entity.getMenu();
-        if (menuEntity == null) {
+        if (menuEntity == null || "Y".equals(menuEntity.getDelYn())) {
             throw new RuntimeException("삭제된 메뉴 하위에 있는 옵션 그룹은 수정할 수 없습니다.");
         }
 
         MenuCategoryEntity category = menuEntity.getMenuCategory();
-        if (category == null) {
+        if (category == null || "Y".equals(category.getDelYn())) {
             throw new RuntimeException("삭제된 메뉴 카테고리 하위에 있는 옵션 그룹은 수정할 수 없습니다.");
+        }
+
+        StoreEntity store = category.getStore();
+        if (store == null || "Y".equals(store.getDelYn())) {
+            throw new RuntimeException("삭제된 가게 하위에 있는 옵션 그룹은 수정할 수 없습니다.");
         }
 
         // 점주 소유 여부 체크
         UserEntity userEntity = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("해당 사용자가 존재하지 않습니다."));
 
-        if (userEntity.getStore() == null || userEntity.getStore().getStoreId() != category.getStore().getStoreId()) {
+        if (userEntity.getStore() == null || userEntity.getStore().getStoreId() != store.getStoreId()) {
             throw new RuntimeException("해당 가게에 대한 권한이 없습니다.");
-        }
-        
-        // 삭제 여부 확인
-        if ("Y".equals(entity.getDelYn())) {
-            throw new RuntimeException("삭제된 옵션 그룹은 수정할 수 없습니다.");
         }
 
         // 기존 옵션 그룹 리스트 가져오기 (삭제되지 않은 것만)
@@ -465,22 +497,31 @@ public class MenuService {
         // 옵션 그룹 조회
         MenuOptionGroupEntity groupEntity = menuOptionGroupRepository.findById(request.getMenuOptGrpId())
             .orElseThrow(() -> new RuntimeException("해당 메뉴 옵션 그룹이 존재하지 않습니다."));
+
+        if ("Y".equals(groupEntity.getDelYn())) {
+            throw new RuntimeException("삭제된 메뉴 옵션 그룹 하위엔 새로운 메뉴 옵션을 등록할 수 없습니다.");
+        }
         
         MenuEntity menuEntity = groupEntity.getMenu();
-        if (menuEntity == null) {
+        if (menuEntity == null || "Y".equals(menuEntity.getDelYn())) {
             throw new RuntimeException("삭제된 메뉴 하위엔 새로운 메뉴 옵션을 등록할 수 없습니다.");
         }
 
         MenuCategoryEntity category = menuEntity.getMenuCategory();
-        if (category == null) {
+        if (category == null || "Y".equals(category.getDelYn())) {
             throw new RuntimeException("삭제된 메뉴 카테고리 하위엔 새로운 메뉴 옵션을 등록할 수 없습니다.");
+        }
+
+        StoreEntity store = category.getStore();
+        if (store == null || "Y".equals(store.getDelYn())) {
+            throw new RuntimeException("삭제된 가게 하위엔 새로운 메뉴 옵션을 등록할 수 없습니다.");
         }
 
         // 점주 소유 여부 체크
         UserEntity userEntity = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("해당 사용자가 존재하지 않습니다."));
 
-        if (userEntity.getStore() == null || userEntity.getStore().getStoreId() != category.getStore().getStoreId()) {
+        if (userEntity.getStore() == null || userEntity.getStore().getStoreId() != store.getStoreId()) {
             throw new RuntimeException("해당 가게에 대한 권한이 없습니다.");
         }
         
@@ -518,25 +559,30 @@ public class MenuService {
         }
 
         MenuOptionGroupEntity groupEntity = entity.getMenuOptionGroup();
-        if (groupEntity == null) {
+        if (groupEntity == null || "Y".equals(groupEntity.getDelYn())) {
             throw new RuntimeException("삭제된 메뉴 옵션 그룹 하위에 있는 메뉴 옵션은 수정할 수 없습니다.");
         }
 
         MenuEntity menuEntity = groupEntity.getMenu();
-        if (menuEntity == null) {
+        if (menuEntity == null || "Y".equals(menuEntity.getDelYn())) {
             throw new RuntimeException("삭제된 메뉴 하위에 있는 메뉴 옵션은 수정할 수 없습니다.");
         }
 
         MenuCategoryEntity category = menuEntity.getMenuCategory();
-        if (category == null) {
+        if (category == null || "Y".equals(category.getDelYn())) {
             throw new RuntimeException("삭제된 메뉴 카테고리 하위에 있는 메뉴 옵션은 수정할 수 없습니다.");
+        }
+
+        StoreEntity store = category.getStore();
+        if (store == null || "Y".equals(store.getDelYn())) {
+            throw new RuntimeException("삭제된 가게 하위에 있는 메뉴 옵션은 수정할 수 없습니다.");
         }
 
         // 점주 소유 여부 체크
         UserEntity userEntity = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("해당 사용자가 존재하지 않습니다."));
 
-        if (userEntity.getStore() == null || userEntity.getStore().getStoreId() != category.getStore().getStoreId()) {
+        if (userEntity.getStore() == null || userEntity.getStore().getStoreId() != store.getStoreId()) {
             throw new RuntimeException("해당 가게에 대한 권한이 없습니다.");
         }
 
@@ -566,20 +612,20 @@ public class MenuService {
             throw new RuntimeException("이미 삭제된 메뉴 카테고리입니다.");
         }
 
+        StoreEntity storeEntity = entity.getStore();
+        if (storeEntity == null || "Y".equals(storeEntity.getDelYn())) {
+            throw new RuntimeException("삭제된 가게 하위에 있는 메뉴 카테고리는 삭제할 수 없습니다.");
+        }
+
         // 점주 소유 여부 체크
         UserEntity userEntity = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("해당 사용자가 존재하지 않습니다."));
 
-        if (userEntity.getStore() == null || userEntity.getStore().getStoreId() != entity.getStore().getStoreId()) {
+        if (userEntity.getStore() == null || userEntity.getStore().getStoreId() != storeEntity.getStoreId()) {
             throw new RuntimeException("해당 가게에 대한 권한이 없습니다.");
         }
 
         int oldOrder = entity.getDisplayOrder();
-
-        StoreEntity storeEntity = entity.getStore();
-        if (storeEntity == null) {
-            throw new RuntimeException("삭제된 가게 하위에 있는 메뉴 카테고리는 삭제할 수 없습니다.");
-        }
 
         entity.setDelYn("Y");
 
@@ -620,15 +666,20 @@ public class MenuService {
         }
         
         MenuCategoryEntity category = entity.getMenuCategory();
-        if (category == null) {
+        if (category == null || "Y".equals(category.getDelYn())) {
             throw new RuntimeException("삭제된 메뉴 카테고리 하위에 있는 메뉴는 삭제할 수 없습니다.");
+        }
+
+        StoreEntity store = category.getStore();
+        if (store == null || "Y".equals(store.getDelYn())) {
+            throw new RuntimeException("삭제된 가게 하위에 있는 메뉴는 삭제할 수 없습니다.");
         }
 
         // 점주 소유 여부 체크
         UserEntity userEntity = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("해당 사용자가 존재하지 않습니다."));
 
-        if (userEntity.getStore() == null || userEntity.getStore().getStoreId() != category.getStore().getStoreId()) {
+        if (userEntity.getStore() == null || userEntity.getStore().getStoreId() != store.getStoreId()) {
             throw new RuntimeException("해당 가게에 대한 권한이 없습니다.");
         }
 
@@ -660,20 +711,25 @@ public class MenuService {
         }
 
         MenuEntity menuEntity = entity.getMenu();
-        if (menuEntity == null) {
+        if (menuEntity == null || "Y".equals(menuEntity.getDelYn())) {
             throw new RuntimeException("삭제된 메뉴 하위에 있는 메뉴 옵션 그룹은 삭제할 수 없습니다.");
         }
 
         MenuCategoryEntity category = menuEntity.getMenuCategory();
-        if (category == null) {
+        if (category == null || "Y".equals(category.getDelYn())) {
             throw new RuntimeException("삭제된 메뉴 카테고리 하위에 있는 메뉴 옵션 그룹은 삭제할 수 없습니다.");
+        }
+
+        StoreEntity store = category.getStore();
+        if (store == null || "Y".equals(store.getDelYn())) {
+            throw new RuntimeException("삭제된 가게 하위에 있는 메뉴 옵션 그룹은 삭제할 수 없습니다.");
         }
 
         // 점주 소유 여부 체크
         UserEntity userEntity = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("해당 사용자가 존재하지 않습니다."));
 
-        if (userEntity.getStore() == null || userEntity.getStore().getStoreId() != category.getStore().getStoreId()) {
+        if (userEntity.getStore() == null || userEntity.getStore().getStoreId() != store.getStoreId()) {
             throw new RuntimeException("해당 가게에 대한 권한이 없습니다.");
         }
 
@@ -717,25 +773,30 @@ public class MenuService {
         }
 
         MenuOptionGroupEntity groupEntity = entity.getMenuOptionGroup();
-        if (groupEntity == null) {
+        if (groupEntity == null || "Y".equals(groupEntity.getDelYn())) {
             throw new RuntimeException("삭제된 메뉴 옵션 그룹 하위에 있는 메뉴 옵션은 삭제할 수 없습니다.");
         }
 
         MenuEntity menuEntity = groupEntity.getMenu();
-        if (menuEntity == null) {
+        if (menuEntity == null || "Y".equals(menuEntity.getDelYn())) {
             throw new RuntimeException("삭제된 메뉴 하위에 있는 메뉴 옵션은 삭제할 수 없습니다.");
         }
 
         MenuCategoryEntity category = menuEntity.getMenuCategory();
-        if (category == null) {
+        if (category == null || "Y".equals(category.getDelYn())) {
             throw new RuntimeException("삭제된 메뉴 카테고리 하위에 있는 메뉴 옵션은 삭제할 수 없습니다.");
+        }
+
+        StoreEntity store = category.getStore();
+        if (store == null || "Y".equals(store.getDelYn())) {
+            throw new RuntimeException("삭제된 가게 하위에 있는 메뉴 옵션은 삭제할 수 없습니다.");
         }
 
         // 점주 소유 여부 체크
         UserEntity userEntity = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("해당 사용자가 존재하지 않습니다."));
 
-        if (userEntity.getStore() == null || userEntity.getStore().getStoreId() != category.getStore().getStoreId()) {
+        if (userEntity.getStore() == null || userEntity.getStore().getStoreId() != store.getStoreId()) {
             throw new RuntimeException("해당 가게에 대한 권한이 없습니다.");
         }
 
