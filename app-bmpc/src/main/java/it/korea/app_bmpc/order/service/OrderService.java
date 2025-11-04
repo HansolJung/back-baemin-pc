@@ -452,7 +452,7 @@ public class OrderService {
         orderRepository.save(orderEntity);
         
         // 주문자에게 주문 상태 변경 알림을 SSE로 보냄
-        //eventPublisher.publishEvent(new OrderStatusChangedEvent(userEntity.getUserId(), message));
+        eventPublisher.publishEvent(new OrderStatusChangedEvent(userEntity.getUserId(), message));
     }
 
     /**

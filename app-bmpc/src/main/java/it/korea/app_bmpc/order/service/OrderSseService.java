@@ -37,12 +37,11 @@ public class OrderSseService {
      */
     public void sendEvent(String userId, String message) {
         SseEmitter emitter = emitters.get(userId);
-        System.out.println("들어옴...");
+
         if (emitter != null) {
             try {
                 emitter.send(SseEmitter.event().name("order-status").data(message));
             } catch (IOException e) {
-                System.out.println("에러발생!! " + e.getMessage());
                 emitters.remove(userId);
             }
         }
