@@ -5,6 +5,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import it.korea.app_bmpc.store.entity.StoreEntity;
 import it.korea.app_bmpc.user.dto.UserDepositRequestDTO;
 import it.korea.app_bmpc.user.dto.UserRequestDTO;
 import it.korea.app_bmpc.user.dto.UserUpdateDTO;
@@ -140,6 +141,15 @@ public class UserService {
         // 사용자 삭제 여부 확인
         if ("Y".equals(userEntity.getDelYn())) {
             throw new RuntimeException("이미 탈퇴된 사용자입니다.");
+        }
+        
+        // 만약 점주라면...
+        if ("OWNER".equals(userEntity.getRole().getRoleId())) {
+            // 점주가 등록한 가게가 아직 존재하는지 확인
+            StoreEntity storeEntity = userEntity.getStore();
+            if (storeEntity != null && !"Y".equals(storeEntity.getDelYn())) {
+                throw new RuntimeException("등록된 가게가 아직 존재합니다. 가게를 먼저 삭제한 후 계정을 탈퇴해주세요.");
+            }
         }
 
         userEntity.setUseYn("N");  // 사용 여부 N

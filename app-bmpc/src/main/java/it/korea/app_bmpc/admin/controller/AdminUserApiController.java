@@ -30,6 +30,7 @@ import it.korea.app_bmpc.order.dto.OrderSearchDTO;
 import it.korea.app_bmpc.order.dto.OrderStatusDTO;
 import it.korea.app_bmpc.order.service.OrderService;
 import it.korea.app_bmpc.review.service.ReviewService;
+import it.korea.app_bmpc.store.service.StoreService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -42,6 +43,7 @@ public class AdminUserApiController {
     private final AdminUserService userService;
     private final OrderService orderService;
     private final ReviewService reviewService;
+    private final StoreService storeService;
 
     /**
      * 회원 리스트 가져오기
@@ -204,6 +206,22 @@ public class AdminUserApiController {
     public ResponseEntity<?> deleteReviewReplyByAdmin(@PathVariable(name = "reviewReplyId") int reviewReplyId) throws Exception {
                
         reviewService.deleteReviewReplyByAdmin(reviewReplyId);
+
+        return ResponseEntity.ok().body(ApiResponse.ok("OK"));
+    }
+
+    /**
+     * 가게 삭제하기
+     * @param storeId 가게 아이디
+     * @param user 로그인한 사용자
+     * @return
+     * @throws Exception
+     */
+    @DeleteMapping("/admin/store/{storeId}")
+    @Operation(summary = "가게 삭제하기")
+    public ResponseEntity<?> deleteStore(@PathVariable(name = "storeId") int storeId) throws Exception {
+ 
+        storeService.deleteStoreByAdmin(storeId);
 
         return ResponseEntity.ok().body(ApiResponse.ok("OK"));
     }

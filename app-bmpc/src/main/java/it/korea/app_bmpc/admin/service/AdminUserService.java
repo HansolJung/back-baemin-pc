@@ -16,7 +16,7 @@ import it.korea.app_bmpc.admin.dto.AdminUserRequestDTO;
 import it.korea.app_bmpc.admin.dto.AdminUserSearchDTO;
 import it.korea.app_bmpc.admin.dto.AdminUserUpdateRequestDTO;
 import it.korea.app_bmpc.common.dto.PageVO;
-import it.korea.app_bmpc.store.entity.StoreEntity;
+import it.korea.app_bmpc.store.service.StoreService;
 import it.korea.app_bmpc.user.entity.UserEntity;
 import it.korea.app_bmpc.user.entity.UserRoleEntity;
 import it.korea.app_bmpc.user.repository.UserRepository;
@@ -30,6 +30,7 @@ public class AdminUserService {
 
     private final UserRepository userRepository;
     private final UserRoleRepository userRoleRepository;
+    private final StoreService storeService;
     private final PasswordEncoder passwordEncoder;   // security config 에서 bean 으로 등록했기 때문에 bcrypt를 똑같이 사용할 수 있음
 
     /**
@@ -194,28 +195,7 @@ public class AdminUserService {
 
         // 점주 권한을 가지고 있고 연결된 가게가 있다면 해당 가게도 삭제 처리
         if ("OWNER".equals(userEntity.getRole().getRoleId()) && userEntity.getStore() != null) {
-            StoreEntity store = userEntity.getStore();
-            store.setDelYn("Y");
-
-            // 하위 메뉴까지 삭제 처리
-            if (store.getMenuCategoryList() != null) {
-                store.getMenuCategoryList().forEach(category -> {
-                    category.setDelYn("Y");
-                    if (category.getMenuList() != null) {
-                        category.getMenuList().forEach(menu -> { 
-                            menu.setDelYn("Y");
-                            if (menu.getMenuOptionGroupList() != null) {
-                                menu.getMenuOptionGroupList().forEach(optGrp -> {
-                                    optGrp.setDelYn("Y");
-                                    if (optGrp.getMenuOptionList() != null) {
-                                        optGrp.getMenuOptionList().forEach(opt -> opt.setDelYn("Y"));
-                                    }
-                                });
-                            }
-                        });
-                    }
-                });
-            }
+            storeService.deleteStoreByAdmin(userEntity.getStore().getStoreId());
         }
 
         userRepository.save(userEntity);

@@ -9,12 +9,15 @@ import java.util.Map;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import it.korea.app_bmpc.common.dto.PageVO;
 import it.korea.app_bmpc.common.utils.FileUtils;
 import it.korea.app_bmpc.config.WebConfig;
+import it.korea.app_bmpc.order.entity.OrderEntity;
+import it.korea.app_bmpc.order.repository.OrderRepository;
 import it.korea.app_bmpc.store.dto.CategoryDTO;
 import it.korea.app_bmpc.store.dto.StoreDTO;
 import it.korea.app_bmpc.store.dto.StoreFileDTO;
@@ -41,6 +44,7 @@ public class StoreService {
     private final StoreRepository storeRepository;
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
+    private final OrderRepository orderRepository;
     private final FileUtils fileUtils;
 
     /**
@@ -401,6 +405,12 @@ public class StoreService {
             throw new RuntimeException("해당 가게를 수정할 권한이 없습니다.");
         }
 
+        // 현재 내 가게에 주문완료 상태의 주문이 있는지 확인
+        boolean isOrderExists = orderRepository.existsByStoreAndStatus(entity, "주문완료");
+        if (isOrderExists) {
+            throw new RuntimeException("현재 '주문완료' 상태의 주문이 존재하여 아직 가게를 삭제할 수 없습니다.");
+        }
+
         entity.setDelYn("Y");  // 삭제 여부 Y로 변경 
         
         // 메뉴 카테고리 -> 메뉴 -> 메뉴옵션그룹 -> 메뉴옵션의 삭제 여부도 Y로 변경
@@ -434,6 +444,78 @@ public class StoreService {
         // 점주의 storeId 비우기
         userEntity.setStore(null);
         userRepository.save(userEntity);
+
+        // 가게의 삭제 여부를 Y 로 변경만하고 가게의 이미지들은 삭제하지 않음
+        // 왜냐하면 주문 내역 등에서 해당 가게의 상세 정보를 보여줘야 하기 때문
+    }
+
+    /**
+     * 가게 삭제하기 (어드민)
+     * @param storeId 가게 아이디
+     * @throws Exception
+     */
+    @Transactional(propagation = Propagation.REQUIRED) // AdminUserService의 회원 삭제 메서드에서 이 메서드를 호출 시 같은 트랜잭션을 공유하도록 함
+    public void deleteStoreByAdmin(int storeId) throws Exception {
+
+        StoreEntity entity = storeRepository.getStore(storeId)   // fetch join 을 사용한 getStore 메서드 호출
+            .orElseThrow(()-> new RuntimeException("해당 가게가 존재하지 않습니다."));
+
+        if ("Y".equals(entity.getDelYn())) {
+            throw new RuntimeException("이미 삭제된 가게입니다.");
+        }
+
+        // 주문완료 상태의 주문을 모두 조회
+        List<OrderEntity> completedOrders = orderRepository.findAllByStoreAndStatus(entity, "주문완료");
+
+        // 주문완료 상태의 주문들이 아직 존재한다면 모두 취소 처리하고 보유금을 원복시킴
+        if (!completedOrders.isEmpty()) {
+            completedOrders.forEach(order -> {
+
+                order.setStatus("주문취소");
+
+                UserEntity user = order.getUser();
+                int totalPrice = order.getTotalPrice();
+                user.setDeposit(user.getDeposit() + totalPrice);  // 보유금 원복
+
+                userRepository.save(user);
+                orderRepository.save(order);
+            });
+        }
+
+        entity.setDelYn("Y");  // 삭제 여부 Y로 변경 
+        
+        // 메뉴 카테고리 -> 메뉴 -> 메뉴옵션그룹 -> 메뉴옵션의 삭제 여부도 Y로 변경
+        if (entity.getMenuCategoryList() != null && !entity.getMenuCategoryList().isEmpty()) {
+            entity.getMenuCategoryList().forEach(menuCategory -> {
+                menuCategory.setDelYn("Y");
+
+                if (menuCategory.getMenuList() != null && !menuCategory.getMenuList().isEmpty()) {
+                    menuCategory.getMenuList().forEach(menu -> {
+                        menu.setDelYn("Y");
+
+                        if (menu.getMenuOptionGroupList() != null && !menu.getMenuOptionGroupList().isEmpty()) {
+                            menu.getMenuOptionGroupList().forEach(optionGroup -> {
+                                optionGroup.setDelYn("Y");
+
+                                if (optionGroup.getMenuOptionList() != null && !optionGroup.getMenuOptionList().isEmpty()) {
+                                    optionGroup.getMenuOptionList().forEach(option -> {
+                                        option.setDelYn("Y");
+                                    });
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+        }
+
+        storeRepository.save(entity);
+
+        // 가게를 소유한 점주를 찾아서 점주의 storeId 비우기
+        userRepository.findByStore(entity).ifPresent(owner -> {
+            owner.setStore(null); 
+            userRepository.save(owner);
+        });
 
         // 가게의 삭제 여부를 Y 로 변경만하고 가게의 이미지들은 삭제하지 않음
         // 왜냐하면 주문 내역 등에서 해당 가게의 상세 정보를 보여줘야 하기 때문

@@ -1,6 +1,7 @@
 package it.korea.app_bmpc.order.repository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -13,6 +14,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import it.korea.app_bmpc.order.entity.OrderEntity;
+import it.korea.app_bmpc.store.entity.StoreEntity;
 
 public interface OrderRepository extends JpaRepository<OrderEntity, Integer>, JpaSpecificationExecutor<OrderEntity> {
 
@@ -92,4 +94,8 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Integer>, Jp
         @Param("endDate") LocalDateTime endDate,
         @Param("status") String status
     );
+
+    boolean existsByStoreAndStatus(StoreEntity store, String status);
+
+    List<OrderEntity> findAllByStoreAndStatus(StoreEntity store, String status);
 }

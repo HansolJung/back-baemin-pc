@@ -629,9 +629,21 @@ public class MenuService {
 
         entity.setDelYn("Y");
 
-        // 하위 메뉴까지 전부 삭제 처리
-        if (entity.getMenuList() != null) {
-            entity.getMenuList().forEach(menu -> menu.setDelYn("Y"));
+        // 하위 메뉴, 메뉴 옵션 그룹, 메뉴 옵션까지 전부 삭제 처리
+        if (entity.getMenuList() != null && !entity.getMenuList().isEmpty()) {
+            entity.getMenuList().forEach(menu -> {
+                menu.setDelYn("Y");
+
+                if (menu.getMenuOptionGroupList() != null && !menu.getMenuOptionGroupList().isEmpty()) {
+                    menu.getMenuOptionGroupList().forEach(group -> {
+                        group.setDelYn("Y");
+
+                        if (group.getMenuOptionList() != null && !group.getMenuOptionList().isEmpty()) {
+                            group.getMenuOptionList().forEach(option -> option.setDelYn("Y"));
+                        }
+                    });
+                }
+            });
         }
 
         // 기존 카테고리 리스트 가져오기
@@ -685,9 +697,15 @@ public class MenuService {
 
         entity.setDelYn("Y");
 
-        // 하위 옵션 그룹까지 전부 삭제 처리
-        if (entity.getMenuOptionGroupList() != null) {
-            entity.getMenuOptionGroupList().forEach(group -> group.setDelYn("Y"));
+        // 하위 메뉴 옵션 그룹, 메뉴 옵션까지 전부 삭제 처리
+        if (entity.getMenuOptionGroupList() != null && !entity.getMenuOptionGroupList().isEmpty()) {
+            entity.getMenuOptionGroupList().forEach(group -> {
+                group.setDelYn("Y");
+
+                if (group.getMenuOptionList() != null && !group.getMenuOptionList().isEmpty()) {
+                    group.getMenuOptionList().forEach(option -> option.setDelYn("Y"));
+                }
+            });
         }
 
         menuRepository.save(entity);
