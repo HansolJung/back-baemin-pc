@@ -7,6 +7,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Component
 public class OrderSseService {
 
@@ -19,7 +22,7 @@ public class OrderSseService {
      * @return
      */
     public SseEmitter subscribe(String userId) {
-        System.out.println("구독하러 들어옴 " + userId);
+        log.info(userId + "가 구독하러 들어옴");
         SseEmitter emitter = new SseEmitter(30 * 60 * 1000L);  // 제한시간 30분
 
         emitters.put(userId, emitter);

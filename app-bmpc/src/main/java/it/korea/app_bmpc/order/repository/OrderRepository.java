@@ -98,4 +98,6 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Integer>, Jp
     boolean existsByStoreAndStatus(StoreEntity store, String status);
 
     List<OrderEntity> findAllByStoreAndStatus(StoreEntity store, String status);
+
+    List<OrderEntity> findByStatusAndOrderDateBefore(String status, LocalDateTime time);
 }
