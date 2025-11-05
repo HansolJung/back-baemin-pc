@@ -5,13 +5,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,9 +43,6 @@ public class OrderService {
     private final MenuRepository menuRepository;
     private final MenuOptionRepository menuOptionRepository;
     private final ApplicationEventPublisher eventPublisher;
-
-    // 스케쥴러 동시 실행 방지용
-    private final ReentrantLock lock = new ReentrantLock();
 
     /**
      * 주문 내역 리스트 가져오기
@@ -460,64 +455,6 @@ public class OrderService {
         
         // 주문자에게 주문 상태 변경 알림을 SSE로 보냄
         eventPublisher.publishEvent(new OrderStatusChangedEvent(userEntity.getUserId(), message));
-    }
-
-    /**
-     * 주문한지 5분이 넘었지만 수락이 안된 주문들 자동 취소하기
-     */
-    @Scheduled(fixedRate = 60000) // 1분마다 실행
-    @Transactional
-    public void cancelOrderBySchedule() {
-
-        int count = 0;
-        boolean locked = false;
-
-        try {
-            locked = lock.tryLock();
-            if (!locked) {
-                return;
-            }
-
-            log.info("주문 자동취소 스케줄러 실행됨: {}", LocalDateTime.now());
-
-            // LocalDateTime time = LocalDateTime.now().minusMinutes(5);
-            // List<OrderEntity> orderEntityList  = orderRepository.findByStatusAndOrderDateBefore("주문완료", time);
-
-            // for (OrderEntity orderEntity : orderEntityList) {
-            //     try {
-            //         orderEntity.setStatus("주문취소");
-            //         orderRepository.save(orderEntity);
-
-            //         UserEntity userEntity = orderEntity.getUser();
-
-            //         // 사용자가 존재하는 경우에만 보유금 원복
-            //         if (userEntity != null && "N".equals(userEntity.getDelYn())) {
-            //             int originalDeposit = userEntity.getDeposit();
-            //             int totalPrice = orderEntity.getTotalPrice();
-
-            //             userEntity.setDeposit(originalDeposit + totalPrice);  // 주문이 취소되었기 때문에 보유금 원복
-
-            //             userRepository.save(userEntity);
-
-            //             String message = "주문이 취소됐습니다.";
-            //             eventPublisher.publishEvent(new OrderStatusChangedEvent(userEntity.getUserId(), message));
-            //         }
-
-            //         count++;
-            //     } catch (Exception e) {
-            //         log.error("주문 자동취소 실패 - 주문 ID: {}", orderEntity.getOrderId());
-            //     }
-            // }
-
-            log.info("주문 자동취소 스케줄러 완료 - 처리건수: {}", count);
-
-        } catch (Exception e) {
-            log.error("스케줄러 실행 중 예외 발생", e);
-        } finally {
-            if (locked) {
-                lock.unlock();
-            }
-        }
     }
 
     /**

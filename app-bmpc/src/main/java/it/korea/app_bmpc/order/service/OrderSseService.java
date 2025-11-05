@@ -52,4 +52,30 @@ public class OrderSseService {
             }
         }
     }
+
+    /**
+     * 사용자와 SSE 연결이 되는지 확인
+     * @param userId 사용자 아이디
+     * @return
+     */
+    public boolean isConnected(String userId) {
+        SseEmitter emitter = emitters.get(userId);
+
+        if (emitter != null) {
+            try {
+                // ping 이벤트를 보낼 수 있으면 연결된 것
+                emitter.send(SseEmitter.event().name("ping").data("keep-alive"));
+
+                return true;
+            } catch (IOException e) {
+
+                emitters.remove(userId);
+                try {
+                    emitter.complete();
+                } catch (Exception ignore) {}  // 로그 출력 방지
+            }
+        }
+
+        return false;
+    }
 }

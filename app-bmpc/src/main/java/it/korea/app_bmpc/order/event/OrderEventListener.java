@@ -48,7 +48,22 @@ public class OrderEventListener {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleOrderStatusChangedEvent(OrderStatusChangedEvent event) {
         try {
-            log.info(event.getMessage());
+            //log.info(event.getMessage());
+            orderSseService.sendEvent(event.getUserId(), event.getMessage());
+
+            log.info("주문자 {}에게 SSE 발송 완료", event.getUserId());
+        } catch (Exception e) {
+            log.error("주문자 {}에게 SSE 발송 중 오류 발생: {}", event.getUserId(), e.getMessage());
+        }
+    }
+
+    /**
+     * 리뷰 요청 트랜잭션이 끝난 후 주문자에게 SSE 발송 
+     */
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void handleReviewRecommendEvent(ReviewRecommendEvent event) {
+        try {
+            //log.info(event.getMessage());
             orderSseService.sendEvent(event.getUserId(), event.getMessage());
 
             log.info("주문자 {}에게 SSE 발송 완료", event.getUserId());
