@@ -49,6 +49,11 @@ public class StoreEntity extends BaseEntity {
     @Column(columnDefinition = "CHAR(1)")
     private String delYn;
 
+    @Column(precision = 10, scale = 7)
+    private BigDecimal latitude;   // 위도 (y)
+    @Column(precision = 10, scale = 7)
+    private BigDecimal longitude;  // 경도 (x)
+
     // 가게-카테고리 매핑
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<StoreCategoryEntity> categoryList = new HashSet<>();

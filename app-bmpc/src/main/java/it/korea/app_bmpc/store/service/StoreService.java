@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
@@ -19,6 +20,8 @@ import org.springframework.web.multipart.MultipartFile;
 import it.korea.app_bmpc.common.dto.PageVO;
 import it.korea.app_bmpc.common.utils.FileUtils;
 import it.korea.app_bmpc.config.WebConfig;
+import it.korea.app_bmpc.kakao.dto.KakaoAddressResponseDTO;
+import it.korea.app_bmpc.kakao.service.KakaoAddressService;
 import it.korea.app_bmpc.order.entity.OrderEntity;
 import it.korea.app_bmpc.order.repository.OrderRepository;
 import it.korea.app_bmpc.store.dto.CategoryDTO;
@@ -48,6 +51,7 @@ public class StoreService {
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
     private final OrderRepository orderRepository;
+    private final KakaoAddressService kakaoAddressService;
     private final FileUtils fileUtils;
 
     /**
@@ -151,6 +155,23 @@ public class StoreService {
             throw new RuntimeException("메인 이미지는 필수입니다.");
         }
 
+        // 넘어온 주소값으로 카카오 API 호출해서 위도/경도 값 얻어오기
+        Optional<KakaoAddressResponseDTO> optResponse = kakaoAddressService.getLocation(request.getAddr());
+
+        BigDecimal latitude = null;
+        BigDecimal longitude = null;
+
+        if (optResponse.isPresent()) {
+            KakaoAddressResponseDTO responseDto = optResponse.get();
+            String latitudeStr = responseDto.getDocuments().get(0).getY();
+            String longitudeStr = responseDto.getDocuments().get(0).getX();
+
+            latitude  = new BigDecimal(latitudeStr);
+            longitude = new BigDecimal(longitudeStr);
+        } else {
+            log.warn("카카오 맵 API 호출 실패. 위도/경도 값에 null 저장");
+        }
+
         StoreEntity entity = new StoreEntity();
         entity.setStoreName(request.getStoreName());
         entity.setBranchName(request.getBranchName());
@@ -162,6 +183,8 @@ public class StoreService {
         entity.setMinPrice(request.getMinPrice());
         entity.setOrigin(request.getOrigin());
         entity.setNotice(request.getNotice());
+        entity.setLatitude(latitude);
+        entity.setLongitude(longitude);
         entity.setDelYn("N");
 
         // 카테고리 매핑
@@ -258,6 +281,24 @@ public class StoreService {
             throw new RuntimeException("해당 가게를 수정할 권한이 없습니다.");
         }
 
+        // 넘어온 주소값으로 카카오 API 호출해서 위도/경도 값 얻어오기
+        // 넘어온 주소값으로 카카오 API 호출해서 위도/경도 값 얻어오기
+        Optional<KakaoAddressResponseDTO> optResponse = kakaoAddressService.getLocation(request.getAddr());
+
+        BigDecimal latitude = null;
+        BigDecimal longitude = null;
+
+        if (optResponse.isPresent()) {
+            KakaoAddressResponseDTO responseDto = optResponse.get();
+            String latitudeStr = responseDto.getDocuments().get(0).getY();
+            String longitudeStr = responseDto.getDocuments().get(0).getX();
+
+            latitude  = new BigDecimal(latitudeStr);
+            longitude = new BigDecimal(longitudeStr);
+        } else {
+            log.warn("카카오 맵 API 호출 실패. 위도/경도 값에 null 저장");
+        }
+
         StoreDTO.Detail detail = StoreDTO.Detail.of(entity);
 
         entity.setStoreName(request.getStoreName());
@@ -268,6 +309,8 @@ public class StoreService {
         entity.setMinPrice(request.getMinPrice());
         entity.setOrigin(request.getOrigin());
         entity.setNotice(request.getNotice());
+        entity.setLatitude(latitude);
+        entity.setLongitude(longitude);
 
         // 카테고리 수정
         entity.getCategoryList().clear(); // 기존 카테고리 전부 삭제

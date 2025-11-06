@@ -116,3 +116,10 @@ springdoc:
   paths-to-match: /api/**  # /api 로 시작하는 것들만 가져오겠다는 뜻
   api-docs:
     path: /v3/api-docs
+
+# 카카오 맵 API 설정
+kakao:
+  base-url: "https://dapi.kakao.com"
+  api:
+    url: "/v2/local/search/address.json"
+    key: 9e02a85d3fa6ef134ef3d0f25d9e26eb
