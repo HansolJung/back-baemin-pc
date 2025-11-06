@@ -2,7 +2,7 @@
 server:
   port: 9090
   file:
-    base-path-mac: /Users/username/files/upload/  # /files/upload/ 는 고정하기. 앞에 /Users/username 만 변경할 것.
+    base-path-mac: /files/upload/  # /files/upload/ 는 고정하기. 앞에 /Users/username 만 변경할 것.
     menu:
       path: C:\files\upload\menu\
     store:
@@ -30,9 +30,9 @@ spring:
   # Database 설정
   datasource:
     driver-class-name: org.mariadb.jdbc.Driver
-    url: jdbc:mariadb://localhost:3306/bmpc_db
+    url: jdbc:mariadb://aws-db.cqriy8i04482.us-east-1.rds.amazonaws.com:3306/bmpc_db
     username: root
-    password: 1234
+    password: jude0098
     type: com.zaxxer.hikari.HikariDataSource
     hikari:
       connection-timeout: 60000

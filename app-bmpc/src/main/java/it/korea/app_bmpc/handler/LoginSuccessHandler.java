@@ -34,8 +34,6 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
             Authentication authentication) throws ServletException, IOException {
         
-        // 로그인 성공 후 처리
-        setDefaultTargetUrl("/book/list");
         // 이동 경로가 있으면 우선 사용
         setAlwaysUseDefaultTargetUrl(false);
 
