@@ -99,7 +99,9 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Integer>, Jp
 
     List<OrderEntity> findAllByStoreAndStatus(StoreEntity store, String status);
 
-    List<OrderEntity> findByStatusAndOrderDateBefore(String status, LocalDateTime time);
+    List<OrderEntity> findByStatusAndOrderDateBefore(String status, LocalDateTime before);
 
-    List<OrderEntity> findByStatusAndOrderDateBetween(String status, LocalDateTime startTime, LocalDateTime endTime);
+    List<OrderEntity> findByStatusAndOrderDateBetween(String status, LocalDateTime startDate, LocalDateTime endDate);
+
+    List<OrderEntity> findByStatusAndOrderDateAfter(String status, LocalDateTime after);
 }

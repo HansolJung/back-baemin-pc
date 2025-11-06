@@ -18,6 +18,7 @@ import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 
 public class StoreSearchSpecification implements Specification<StoreEntity> {
 
@@ -34,6 +35,17 @@ public class StoreSearchSpecification implements Specification<StoreEntity> {
     public Predicate toPredicate(Root<StoreEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
         List<Predicate> predicates = new ArrayList<>();
 
+        Subquery<Integer> subQuery = query.subquery(Integer.class);
+        Root<MenuEntity> menuRoot = subQuery.from(MenuEntity.class);
+
+        // 메뉴가 적어도 1개 이상인 가게들만 검색되도록 서브쿼리 작성
+        subQuery.select(cb.literal(1))
+                .where(cb.equal(menuRoot.get("menuCategory").get("store"), root), // 메뉴 -> 카테고리 -> 스토어 매칭
+                    cb.equal(menuRoot.get("delYn"), "N"),  // 기본적으로 삭제 여부가 N 인 메뉴들만 검색
+                    cb.equal(menuRoot.get("menuCategory").get("delYn"), "N")); // 상위 메뉴 카테고리의 삭제 여부도 N 이어야 함
+
+        predicates.add(cb.exists(subQuery));  // 위 서브쿼리의 결과가 존재해야함
+
         if (StringUtils.isNotBlank(searchDTO.getSearchText())) {  // 검색어가 있을 경우
             String likeText = "%" + searchDTO.getSearchText() + "%";
 
@@ -41,8 +53,13 @@ public class StoreSearchSpecification implements Specification<StoreEntity> {
             Join<StoreEntity, MenuCategoryEntity> menuCategoryJoin = root.join("menuCategoryList", JoinType.LEFT);
             Join<MenuCategoryEntity, MenuEntity> menuJoin = menuCategoryJoin.join("menuList", JoinType.LEFT);
 
+            Predicate validMenuPredicate = cb.and(
+                cb.equal(menuJoin.get("delYn"), "N"), 
+                cb.equal(menuCategoryJoin.get("delYn"), "N"));
             Predicate storeNamePredicate = cb.like(root.get("storeName"), likeText);
-            Predicate menuNamePredicate = cb.like(menuJoin.get("menuName"), likeText);
+            Predicate menuNamePredicate = cb.and(
+                validMenuPredicate, 
+                cb.like(menuJoin.get("menuName"), likeText));
 
             // 가게명 또는 메뉴명으로 검색
             Predicate orPredicate = orTogether(List.of(storeNamePredicate, menuNamePredicate), cb);

@@ -160,4 +160,20 @@ public class StoreApiController {
 
         return ResponseEntity.ok().body(ApiResponse.ok("OK"));
     }
+
+    /**
+     * 최근 한달간 인기 가게 top 10 리스트 가져오기 (with 캐시 저장)
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/store/popular")
+    public ResponseEntity<?> getPopularStoreList() throws Exception {
+
+        Map<String, Object> resultMap = new HashMap<>();
+        List<StoreDTO.Popular> dtoList = storeService.getPopularStoreList();
+
+        resultMap.put("vo", dtoList);
+
+        return ResponseEntity.ok().body(ApiResponse.ok(resultMap));
+    }
 }

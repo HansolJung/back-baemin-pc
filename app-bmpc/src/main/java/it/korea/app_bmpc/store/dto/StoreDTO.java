@@ -296,6 +296,26 @@ public class StoreDTO {
         }
     }
 
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Getter
+    public static class Popular {
+
+        private int storeId;
+        private String storeName;
+        private int orderCount;
+
+        public static Popular of(StoreEntity entity, int orderCount) {
+
+            return Popular.builder()
+                .storeId(entity.getStoreId())
+                .storeName(entity.getStoreName())
+                .orderCount(orderCount)
+                .build();
+        }
+    }
+
     @Data
     public static class Request {
         private int storeId;

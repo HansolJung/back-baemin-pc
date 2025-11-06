@@ -44,7 +44,7 @@ public class ReviewRecommendScheduler {
      * 배달완료 후 1시간 지난 주문자에게 리뷰 요청 SSE 전송하기
      */
     //@Scheduled(fixedRate = 600000) // 10분마다 실행
-    @Scheduled(initialDelay = 60000, fixedRate = 60000)  // 1분마다 실행. 추후 10분으로 교체해야함.
+    @Scheduled(initialDelay = 60000, fixedRate = 60000)  // 테스트를 위해 1분마다 실행. 추후 10분으로 교체해야함.
     @Transactional(readOnly = true)
     public void sendReviewRequest() {
         boolean locked = false;

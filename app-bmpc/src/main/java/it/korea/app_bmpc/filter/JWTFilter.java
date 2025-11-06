@@ -42,11 +42,18 @@ public class JWTFilter extends OncePerRequestFilter {
         
         String requestURI = request.getRequestURI();
 
-        // 로그인, 회원가입, refresh 토큰, 로그아웃 경로는 화이트리스트로 등록
+        // 로그인, 회원가입, refresh 토큰, 로그아웃 경로 등을 화이트리스트로 등록
         if (requestURI.startsWith("/api/v1/login")
                 || requestURI.startsWith("/api/v1/register")
                 || requestURI.startsWith("/api/v1/refresh")
-                || requestURI.startsWith("/api/v1/logout")) {
+                || requestURI.startsWith("/api/v1/logout")
+                || (requestURI.startsWith("/api/v1/store") && "GET".equalsIgnoreCase(request.getMethod()))
+                || (requestURI.startsWith("/api/v1/menu") && "GET".equalsIgnoreCase(request.getMethod()))
+                || requestURI.startsWith("/swagger-ui")
+                || requestURI.startsWith("/v3/api-docs")
+                || requestURI.startsWith("/favicon.ico")
+                || requestURI.startsWith("/img/")) 
+                {
             filterChain.doFilter(request, response);
             return;
         }
@@ -64,7 +71,7 @@ public class JWTFilter extends OncePerRequestFilter {
         }
 
         if (accessToken == null) {  // accessToken 이 null 이라면 로그인을 안했다는 뜻
-            log.error("accessToken is null");
+            log.debug("accessToken is null");
             filterChain.doFilter(request, response);   // 다음 필터로 이동하도록 함
             
             return;   // 자격이 없으니 로그인으로 넘어가도록 함

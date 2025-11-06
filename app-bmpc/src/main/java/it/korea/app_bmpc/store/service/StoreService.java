@@ -2,10 +2,13 @@ package it.korea.app_bmpc.store.service;
 
 import java.io.File;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -519,6 +522,41 @@ public class StoreService {
 
         // 가게의 삭제 여부를 Y 로 변경만하고 가게의 이미지들은 삭제하지 않음
         // 왜냐하면 주문 내역 등에서 해당 가게의 상세 정보를 보여줘야 하기 때문
+    }
+
+    /**
+     * 최근 한달간 인기 가게 top 10 리스트 가져오기 (with 캐시 저장)
+     * @return
+     */
+    @Cacheable("popularStoreList")   // 캐시 저장
+    @Transactional(readOnly = true)
+    public List<StoreDTO.Popular> getPopularStoreList() {
+
+        List<OrderEntity> orderEntityList =
+            orderRepository.findByStatusAndOrderDateAfter("배달완료", LocalDateTime.now().minusMonths(1));
+
+        // 가게별 주문수 맵에 저장하기
+        Map<StoreEntity, Integer> storeCountMap = new HashMap<>();
+        for (OrderEntity orderEntity : orderEntityList) {
+            StoreEntity storeEntity = orderEntity.getStore();
+            storeCountMap.put(storeEntity, storeCountMap.getOrDefault(storeEntity, 0) + 1);
+        }
+
+        // 주문수 기준으로 내림차순 정렬
+        List<Map.Entry<StoreEntity, Integer>> storeCountList = new ArrayList<>(storeCountMap.entrySet());
+        storeCountList.sort((a, b) -> b.getValue().compareTo(a.getValue()));
+
+        // 상위 10개만 DTO로 변환
+        List<StoreDTO.Popular> result = new ArrayList<>();
+        int count = 0;
+        for (Map.Entry<StoreEntity, Integer> entry : storeCountList) {
+            if (count++ >= 10) {
+                break;
+            }
+            result.add(StoreDTO.Popular.of(entry.getKey(), entry.getValue()));
+        }
+
+        return result;
     }
 
     /**
