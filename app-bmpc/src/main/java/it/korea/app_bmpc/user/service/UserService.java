@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import it.korea.app_bmpc.store.entity.StoreEntity;
 import it.korea.app_bmpc.user.dto.UserDepositRequestDTO;
 import it.korea.app_bmpc.user.dto.UserRequestDTO;
+import it.korea.app_bmpc.user.dto.UserResponseDTO;
 import it.korea.app_bmpc.user.dto.UserUpdateDTO;
 import it.korea.app_bmpc.user.entity.UserEntity;
 import it.korea.app_bmpc.user.entity.UserRoleEntity;
@@ -93,7 +94,26 @@ public class UserService {
     }
 
     /**
-     * 사용자 정보 수정하기
+     * 나의 정보 가져오기
+     * @param userId 사용자 아이디
+     * @return
+     * @throws Exception
+     */
+    @Transactional(readOnly = true)
+    public UserResponseDTO getUser(String userId) throws Exception {
+
+        UserEntity userEntity = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("해당 사용자가 존재하지 않습니다."));
+
+        if ("Y".equals(userEntity.getDelYn())) {
+            throw new RuntimeException("삭제된 사용자의 정보는 가져올 수 없습니다.");
+        }
+
+        return UserResponseDTO.of(userEntity);
+    }
+
+    /**
+     * 나의 정보 수정하기
      * @param request 사용자 객체
      * @throws Exception
      */
@@ -128,7 +148,7 @@ public class UserService {
     }
 
     /**
-     * 내 계정 탈퇴하기
+     * 나의 계정 탈퇴하기
      * @param userId 사용자 아이디
      * @throws Exception
      */

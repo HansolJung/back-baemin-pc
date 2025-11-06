@@ -1,9 +1,13 @@
 package it.korea.app_bmpc.user.controller;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -15,6 +19,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import it.korea.app_bmpc.common.dto.ApiResponse;
 import it.korea.app_bmpc.user.dto.UserDepositRequestDTO;
 import it.korea.app_bmpc.user.dto.UserRequestDTO;
+import it.korea.app_bmpc.user.dto.UserResponseDTO;
 import it.korea.app_bmpc.user.dto.UserSecureDTO;
 import it.korea.app_bmpc.user.dto.UserUpdateDTO;
 import it.korea.app_bmpc.user.service.UserService;
@@ -65,6 +70,24 @@ public class UserApiController {
         userService.increaseDeposit(request);
 
         return ResponseEntity.ok().body(ApiResponse.ok("OK"));
+    }
+
+    /**
+     * 나의 정보 가져오기
+     * @param user 로그인한 사용자
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/user")
+    @Operation(summary = "나의 정보 가져오기")
+    public ResponseEntity<?> getUser(@AuthenticationPrincipal UserSecureDTO user) throws Exception {
+
+        Map<String, Object> resultMap = new HashMap<>();
+        UserResponseDTO dto = userService.getUser(user.getUserId());
+        
+        resultMap.put("vo", dto);
+
+        return ResponseEntity.ok().body(ApiResponse.ok(resultMap));
     }
 
     /**
