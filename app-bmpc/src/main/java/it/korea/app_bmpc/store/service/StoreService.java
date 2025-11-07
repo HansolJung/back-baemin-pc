@@ -2,6 +2,7 @@ package it.korea.app_bmpc.store.service;
 
 import java.io.File;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -76,6 +77,29 @@ public class StoreService {
         Map<String, Object> resultMap = new HashMap<>();
 
         Page<StoreEntity> pageList = null;
+
+        // 넘어온 사용자의 주소값으로 카카오 API 호출해서 위도/경도 값 얻어오기
+        Optional<KakaoAddressResponseDTO> optResponse = kakaoAddressService.getLocation(searchDTO.getAddr());
+
+        BigDecimal userLatitude = null;
+        BigDecimal userLongitude = null;
+
+        if (optResponse.isPresent()) {
+            KakaoAddressResponseDTO responseDto = optResponse.get();
+            String latitudeStr = responseDto.getDocuments().get(0).getY();
+            String longitudeStr = responseDto.getDocuments().get(0).getX();
+
+            userLatitude  = new BigDecimal(latitudeStr).setScale(7, RoundingMode.DOWN);   // 소수점 7자리 까지만
+            userLongitude = new BigDecimal(longitudeStr).setScale(7, RoundingMode.DOWN);   // 소수점 7자리 까지만
+        } else {
+            log.warn("카카오 맵 API 호출 실패. 가게 검색시 반경 필터링 하지 않음");
+        }
+
+        log.info("사용자 좌표) " + userLatitude + ", " + userLongitude);
+
+        // searchDTO 에 사용자 좌표 저장
+        searchDTO.setUserLatitude(userLatitude);
+        searchDTO.setUserLongitude(userLongitude);
 
         StoreSearchSpecification searchSpecification = new StoreSearchSpecification(searchDTO);
         pageList = storeRepository.findAll(searchSpecification, pageable);
@@ -166,8 +190,8 @@ public class StoreService {
             String latitudeStr = responseDto.getDocuments().get(0).getY();
             String longitudeStr = responseDto.getDocuments().get(0).getX();
 
-            latitude  = new BigDecimal(latitudeStr);
-            longitude = new BigDecimal(longitudeStr);
+            latitude  = new BigDecimal(latitudeStr).setScale(7, RoundingMode.DOWN);   // 소수점 7자리 까지만
+            longitude = new BigDecimal(longitudeStr).setScale(7, RoundingMode.DOWN);   // 소수점 7자리 까지만
         } else {
             log.warn("카카오 맵 API 호출 실패. 위도/경도 값에 null 저장");
         }
@@ -293,8 +317,8 @@ public class StoreService {
             String latitudeStr = responseDto.getDocuments().get(0).getY();
             String longitudeStr = responseDto.getDocuments().get(0).getX();
 
-            latitude  = new BigDecimal(latitudeStr);
-            longitude = new BigDecimal(longitudeStr);
+            latitude  = new BigDecimal(latitudeStr).setScale(7, RoundingMode.DOWN);   // 소수점 7자리 까지만
+            longitude = new BigDecimal(longitudeStr).setScale(7, RoundingMode.DOWN);   // 소수점 7자리 까지만
         } else {
             log.warn("카카오 맵 API 호출 실패. 위도/경도 값에 null 저장");
         }

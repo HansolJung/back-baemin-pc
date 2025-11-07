@@ -63,7 +63,7 @@ public class StoreApiController {
     @Operation(summary = "가게 리스트 가져오기")
     public ResponseEntity<?> getStoreList(@PageableDefault(page = 0, size = 10, 
             sort = "updateDate", direction = Direction.DESC) Pageable pageable,
-            StoreSearchDTO searchDTO) throws Exception {
+            @Valid StoreSearchDTO searchDTO) throws Exception {
 
         Map<String, Object> resultMap = storeService.getStoreList(pageable, searchDTO);
 

@@ -14,6 +14,7 @@ import it.korea.app_bmpc.store.entity.StoreCategoryEntity;
 import it.korea.app_bmpc.store.entity.StoreEntity;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
@@ -82,6 +83,58 @@ public class StoreSearchSpecification implements Specification<StoreEntity> {
         }
 
         predicates.add(cb.equal(root.get("delYn"), "N"));   // 기본적으로 삭제 여부가 N 인 가게들만 검색
+
+        // 사용자가 입력한 주소의 위도/경도 값으로 반경 4km 내의 가게들만 필터링 (Haversine 공식 사용)
+        // 만약 사용자 주소가 위도/경도 값으로 변환이 안됐다면 해당 필터링 과정은 스킵
+        if (searchDTO.getUserLatitude() != null && searchDTO.getUserLongitude() != null) {
+
+            // 사용자 좌표를 라디안으로 변환
+            Expression<Double> lat1 = cb.function("radians", Double.class, cb.literal(searchDTO.getUserLatitude()));
+            Expression<Double> lon1 = cb.function("radians", Double.class, cb.literal(searchDTO.getUserLongitude()));
+
+            // 가게 좌표를 라디안으로 변환
+            Expression<Double> lat2 = cb.function("radians", Double.class, root.get("latitude"));
+            Expression<Double> lon2 = cb.function("radians", Double.class, root.get("longitude"));
+
+            // Δlat / 2, Δlon / 2
+            // 나누기 2 대신, 곱하기 0.5 로 나누기 효과를 구현해야 함
+            Expression<Double> halfLatDiff = cb.prod(cb.diff(lat2, lat1), cb.literal(0.5));
+            Expression<Double> halfLonDiff = cb.prod(cb.diff(lon2, lon1), cb.literal(0.5));
+
+            // sin²(Δlat/2), sin²(Δlon/2)
+            Expression<Double> sinLatSq = 
+                cb.prod(cb.function("sin", Double.class, halfLatDiff),
+                        cb.function("sin", Double.class, halfLatDiff));
+            Expression<Double> sinLonSq = 
+                cb.prod(cb.function("sin", Double.class, halfLonDiff),
+                        cb.function("sin", Double.class, halfLonDiff));
+
+            // a = sin²(Δlat/2) + cos(lat1) * cos(lat2) * sin²(Δlon/2)
+            Expression<Double> a = 
+                cb.sum(
+                    sinLatSq,
+                    cb.prod(
+                        cb.prod(
+                            cb.function("cos", Double.class, lat1),
+                            cb.function("cos", Double.class, lat2)),
+                        sinLonSq));
+
+            // c = 2 * atan2(sqrt(a), sqrt(1 - a))
+            Expression<Double> c = cb.prod(
+                cb.literal(2.0),
+                cb.function("atan2", Double.class,
+                    cb.function("sqrt", Double.class, a),
+                    cb.function("sqrt", Double.class, cb.diff(cb.literal(1.0), a))
+                )
+            );
+
+            // distance = R * c
+            // 6371.0 은 지구의 반지름 값
+            Expression<Double> distance = cb.prod(cb.literal(6371.0), c);
+
+            // 반경 4km 이하 필터링 조건 추가
+            predicates.add(cb.lessThanOrEqualTo(distance, 4.0));
+        }
 
         return andTogether(predicates, cb);
     }
