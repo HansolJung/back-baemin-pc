@@ -44,6 +44,7 @@ public class StoreDTO {
         private String addrDetail;
         private BigDecimal ratingAvg;
         private int reviewCount;
+        private int minPrice;
         private String delYn;
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         private LocalDateTime createDate;
@@ -110,6 +111,7 @@ public class StoreDTO {
                 .addrDetail(entity.getAddrDetail())
                 .ratingAvg(entity.getRatingAvg())
                 .reviewCount(entity.getReviewCount())
+                .minPrice(entity.getMinPrice())
                 .delYn(entity.getDelYn())
                 .createDate(entity.getCreateDate())
                 .updateDate(entity.getUpdateDate())
