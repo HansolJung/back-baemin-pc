@@ -3,6 +3,8 @@ package it.korea.app_bmpc.order.entity;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.hibernate.annotations.BatchSize;
+
 import it.korea.app_bmpc.menu.entity.MenuEntity;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
@@ -43,6 +45,7 @@ public class OrderItemEntity {
 
     // 주문 아이템 옵션 매핑
     @OneToMany(mappedBy = "orderItem", cascade = CascadeType.ALL, orphanRemoval = true) // 기본적으로 fetch = FetchType.LAZY
+    @BatchSize(size = 100)
     private Set<OrderItemOptionEntity> itemOptionList = new HashSet<>();
 
     // 주문 아이템 옵션 추가

@@ -7,6 +7,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
+import it.korea.app_bmpc.order.dto.OrderDTO;
+import it.korea.app_bmpc.order.dto.OrderSummaryDTO;
 import it.korea.app_bmpc.review.entity.ReviewEntity;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -35,6 +37,7 @@ public class ReviewDTO {
         private LocalDateTime createDate;
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         private LocalDateTime updateDate;
+        private OrderSummaryDTO order;
         private List<ReviewFileDTO> fileList;
         private ReviewReplyDTO.Response reply;
         
@@ -51,6 +54,9 @@ public class ReviewDTO {
                 reply = ReviewReplyDTO.Response.of(entity.getReply());
             }
 
+            // 주문 엔티티를 주문 정보 요약 DTO 로 객체 변환
+            OrderSummaryDTO orderSummary = OrderSummaryDTO.of(entity.getOrder());
+
             return Response.builder()
                 .reviewId(entity.getReviewId())
                 .rating(entity.getRating())
@@ -59,6 +65,56 @@ public class ReviewDTO {
                 .createDate(entity.getCreateDate())
                 .updateDate(entity.getUpdateDate())
                 .writer(entity.getUser().getUserId())
+                .order(orderSummary)
+                .fileList(fileList)
+                .reply(reply)
+                .build();
+        }
+    }
+
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Getter
+    public static class DetailResponse {
+        private int reviewId;
+        private int rating;
+        private String content;
+        private String delYn;
+        private String writer; 
+        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+        private LocalDateTime createDate;
+        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+        private LocalDateTime updateDate;
+        private OrderDTO.Response order;
+        private List<ReviewFileDTO> fileList;
+        private ReviewReplyDTO.Response reply;
+        
+        public static DetailResponse of(ReviewEntity entity) {
+
+            // 파일 엔티티를 파일 DTO 로 객체 변환
+            // 바로 이때 파일 리스트가 SELECT 된다.
+            List<ReviewFileDTO> fileList = 
+                entity.getFileList().stream().map(ReviewFileDTO::of).toList();
+
+            // 답변 엔티티를 답변 DTO 로 객체 변환
+            ReviewReplyDTO.Response reply = null;
+            if (entity.getReply() != null) {
+                reply = ReviewReplyDTO.Response.of(entity.getReply());
+            }
+
+            // 주문 엔티티를 주문 DTO 로 객체 변환
+            OrderDTO.Response order = OrderDTO.Response.of(entity.getOrder());
+
+            return DetailResponse.builder()
+                .reviewId(entity.getReviewId())
+                .rating(entity.getRating())
+                .content(entity.getContent())
+                .delYn(entity.getDelYn())
+                .createDate(entity.getCreateDate())
+                .updateDate(entity.getUpdateDate())
+                .writer(entity.getUser().getUserId())
+                .order(order)
                 .fileList(fileList)
                 .reply(reply)
                 .build();

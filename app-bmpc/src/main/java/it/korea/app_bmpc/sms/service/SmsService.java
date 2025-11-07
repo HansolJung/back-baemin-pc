@@ -14,15 +14,16 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class SmsService {
 
-    private final DefaultMessageService messageService;
-    private final String fromNumber;
+    private static DefaultMessageService messageService;
+    
+    @Value("${coolsms.api.number}")
+    private  String fromNumber;
 
-    public SmsService(@Value("${coolsms.api.key}") String apiKey,
-                      @Value("${coolsms.api.secret}") String apiSecret,
-                      @Value("${coolsms.api.number}") String fromNumber) {
-        this.messageService = SolapiClient.INSTANCE.createInstance(apiKey, apiSecret);
-        this.fromNumber = fromNumber;
-    }
+    @Value("${coolsms.api.key}")
+    String apiKey;
+
+    @Value("${coolsms.api.secret}")
+    String apiSecret;
 
     /**
      * 점주에게 주문 내용 SMS 발송하기
@@ -33,12 +34,16 @@ public class SmsService {
     public void sendToOwner(String toNumber, String orderSummary) {
         try {
 
+            if (messageService == null) {  // 생성자로 주입 받으면 빌드시 오류가 발생. 이렇게 선언한다.
+                messageService = SolapiClient.INSTANCE.createInstance(apiKey, apiSecret);
+            }
+
             Message message = new Message();
             message.setFrom(fromNumber);
             message.setTo(toNumber);
             message.setText("[배달의민족]\n새 주문이 들어왔습니다.\n\n주문내역)\n" + orderSummary);
 
-            this.messageService.send(message);
+            messageService.send(message);
 
             log.info("점주 번호 {}로 문자 전송 성공", toNumber);
         } catch (Exception e) {

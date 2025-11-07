@@ -62,6 +62,41 @@ public class OrderDTO {
     @AllArgsConstructor
     @NoArgsConstructor
     @Getter
+    public static class DetailResponse {
+        private int orderId;
+        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+        private LocalDateTime orderDate;;
+        private int totalPrice;
+        private String status;
+        private String userName;
+        private String userId;
+        private String addr;
+        private String addrDetail;
+        private List<OrderItemSummaryDTO> itemList;
+     
+        public static DetailResponse of(OrderEntity entity) {
+            
+            UserSecureDTO user = new UserSecureDTO(entity.getUser());
+            List<OrderItemSummaryDTO> itemList = entity.getItemList().stream().map(OrderItemSummaryDTO::of).toList();
+
+            return DetailResponse.builder()
+                .orderId(entity.getOrderId())
+                .orderDate(entity.getOrderDate())
+                .totalPrice(entity.getTotalPrice())
+                .status(entity.getStatus())
+                .userName(user.getUserName())
+                .userId(user.getUserId())
+                .addr(entity.getAddr())
+                .addrDetail(entity.getAddrDetail())
+                .itemList(itemList)
+                .build();
+        }
+    }
+
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Getter
     public static class Detail {
         private int orderId;
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")

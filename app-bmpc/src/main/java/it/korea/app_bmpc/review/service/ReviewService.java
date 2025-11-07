@@ -60,7 +60,8 @@ public class ReviewService {
     public Map<String, Object> getStoreReviewList(Pageable pageable, int storeId) throws Exception {
         Map<String, Object> resultMap = new HashMap<>();
 
-        Page<ReviewEntity> pageList = reviewRepository.findAllByStore_storeIdAndDelYn(storeId, "N", pageable);
+        //Page<ReviewEntity> pageList = reviewRepository.findAllByStore_storeIdAndDelYn(storeId, "N", pageable);
+        Page<ReviewEntity> pageList = reviewRepository.findAllByStoreId(storeId, "N", pageable);
 
         List<ReviewDTO.Response> reviewList = pageList.getContent().stream().map(ReviewDTO.Response::of).toList();
 
@@ -96,9 +97,10 @@ public class ReviewService {
 
         Map<String, Object> resultMap = new HashMap<>();
 
-        Page<ReviewEntity> pageList = reviewRepository.findAllByStore_storeIdAndDelYn(storeEntity.getStoreId(), "N", pageable);
+        //Page<ReviewEntity> pageList = reviewRepository.findAllByStore_storeIdAndDelYn(storeEntity.getStoreId(), "N", pageable);
+        Page<ReviewEntity> pageList = reviewRepository.findAllByStoreId(storeEntity.getStoreId(), "N", pageable);
 
-        List<ReviewDTO.Response> reviewList = pageList.getContent().stream().map(ReviewDTO.Response::of).toList();
+        List<ReviewDTO.DetailResponse> reviewList = pageList.getContent().stream().map(ReviewDTO.DetailResponse::of).toList();
 
         PageVO pageVO = new PageVO();
         pageVO.setData(pageList.getNumber(), (int) pageList.getTotalElements());
@@ -112,7 +114,7 @@ public class ReviewService {
     }
 
     /**
-     * 사용자가 작성한 리뷰 리스트 가져오기
+     * 내가 작성한 리뷰 리스트 가져오기
      * @param pageable 페이징 객체
      * @param userId 사용자 아이디
      * @return
@@ -122,9 +124,9 @@ public class ReviewService {
     public Map<String, Object> getUserReviewList(Pageable pageable, String userId) throws Exception {
         Map<String, Object> resultMap = new HashMap<>();
 
-        Page<ReviewEntity> pageList = reviewRepository.findAllByUser_userIdAndDelYn(userId, "N", pageable);
+        Page<ReviewEntity> pageList = reviewRepository.findAllByUserId(userId, "N", pageable);
 
-        List<ReviewDTO.Response> reviewList = pageList.getContent().stream().map(ReviewDTO.Response::of).toList();
+        List<ReviewDTO.DetailResponse> reviewList = pageList.getContent().stream().map(ReviewDTO.DetailResponse::of).toList();
 
         PageVO pageVO = new PageVO();
         pageVO.setData(pageList.getNumber(), (int) pageList.getTotalElements());

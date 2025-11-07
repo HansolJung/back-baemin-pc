@@ -29,6 +29,7 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Integer>, Jp
         value = """
             select distinct o
             from OrderEntity o
+            join fetch o.store s
             join fetch o.user u
             join fetch o.itemList i
             join fetch i.menu m
@@ -88,12 +89,8 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Integer>, Jp
         and o.status = :status
         and o.orderDate between :startDate and :endDate
     """)
-    Integer sumTotalPrice(
-        @Param("storeId") int storeId,
-        @Param("startDate") LocalDateTime startDate,
-        @Param("endDate") LocalDateTime endDate,
-        @Param("status") String status
-    );
+    Integer sumTotalPrice(@Param("storeId") int storeId, @Param("startDate") LocalDateTime startDate,
+        @Param("endDate") LocalDateTime endDate, @Param("status") String status);
 
     boolean existsByStoreAndStatus(StoreEntity store, String status);
 

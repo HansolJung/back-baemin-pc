@@ -188,8 +188,8 @@ public class BasketService {
 
         // String ownerPhone = owner.getPhone().replace("-", "");
 
-        // 점주에게 sms 발송하기위해 이벤트 발행 (모든 save가 정상적으로 실행이 된 이후 발송됨)
-        //eventPublisher.publishEvent(new OrderCreatedEvent(orderEntity.getOrderId(), ownerPhone));
+        // //점주에게 sms 발송하기위해 이벤트 발행 (모든 save가 정상적으로 실행이 된 이후 발송됨)
+        // eventPublisher.publishEvent(new OrderCreatedEvent(orderEntity.getOrderId(), ownerPhone));
     }
 
     /**
