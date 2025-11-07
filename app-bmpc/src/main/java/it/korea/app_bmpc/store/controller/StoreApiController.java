@@ -98,7 +98,7 @@ public class StoreApiController {
     @GetMapping("/store/my")
     @Operation(summary = "나의 가게 상세정보 가져오기")
     public ResponseEntity<?> getOwnerStore(@AuthenticationPrincipal UserSecureDTO user) throws Exception {
-
+        
         Map<String, Object> resultMap = new HashMap<>();
         StoreDTO.OwnerDetail dto = storeService.getOwnerStore(user.getUserId());
 

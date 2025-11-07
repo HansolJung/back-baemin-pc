@@ -47,7 +47,9 @@ public class JWTFilter extends OncePerRequestFilter {
                 || requestURI.startsWith("/api/v1/register")
                 || requestURI.startsWith("/api/v1/refresh")
                 || requestURI.startsWith("/api/v1/logout")
-                || (requestURI.startsWith("/api/v1/store") && "GET".equalsIgnoreCase(request.getMethod()))
+                || (requestURI.startsWith("/api/v1/store") && 
+                        "GET".equalsIgnoreCase(request.getMethod()) && 
+                        !"/api/v1/store/my".equals(requestURI))
                 || (requestURI.startsWith("/api/v1/menu") && "GET".equalsIgnoreCase(request.getMethod()))
                 || requestURI.startsWith("/swagger-ui")
                 || requestURI.startsWith("/v3/api-docs")
