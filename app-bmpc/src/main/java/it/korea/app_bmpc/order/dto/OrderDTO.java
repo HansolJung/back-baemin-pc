@@ -6,6 +6,7 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import it.korea.app_bmpc.order.entity.OrderEntity;
+import it.korea.app_bmpc.store.entity.StoreEntity;
 import it.korea.app_bmpc.user.dto.UserSecureDTO;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -30,12 +31,16 @@ public class OrderDTO {
         private String userId;
         private String addr;
         private String addrDetail;
+        private int storeId;
+        private String storeName;
         private List<OrderItemSummaryDTO> itemList;
      
         public static Response of(OrderEntity entity) {
             
             UserSecureDTO user = new UserSecureDTO(entity.getUser());
             List<OrderItemSummaryDTO> itemList = entity.getItemList().stream().map(OrderItemSummaryDTO::of).toList();
+
+            StoreEntity store = entity.getStore();
 
             return Response.builder()
                 .orderId(entity.getOrderId())
@@ -46,6 +51,8 @@ public class OrderDTO {
                 .userId(user.getUserId())
                 .addr(entity.getAddr())
                 .addrDetail(entity.getAddrDetail())
+                .storeId(store.getStoreId())
+                .storeName(store.getStoreName())
                 .itemList(itemList)
                 .build();
         }
@@ -65,6 +72,8 @@ public class OrderDTO {
         private String userId;
         private String addr;
         private String addrDetail;
+        private int storeId;
+        private String storeName;
         private List<OrderItemDTO> itemList;
      
         public static Detail of(OrderEntity entity) {
@@ -72,6 +81,8 @@ public class OrderDTO {
             UserSecureDTO user = new UserSecureDTO(entity.getUser());
             List<OrderItemDTO> itemList = entity.getItemList()
                 .stream().map(OrderItemDTO::of).toList();
+
+            StoreEntity store = entity.getStore();
 
             return Detail.builder()
                 .orderId(entity.getOrderId())
@@ -82,6 +93,8 @@ public class OrderDTO {
                 .userId(user.getUserId())
                 .addr(entity.getAddr())
                 .addrDetail(entity.getAddrDetail())
+                .storeId(store.getStoreId())
+                .storeName(store.getStoreName())
                 .itemList(itemList)
                 .build();
         }
