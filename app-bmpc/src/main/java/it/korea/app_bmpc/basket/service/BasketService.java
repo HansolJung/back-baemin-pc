@@ -183,13 +183,13 @@ public class BasketService {
         basketRepository.save(basketEntity);
 
         // 점주 전화번호 찾기
-        // UserEntity owner = userRepository.findByStore(orderEntity.getStore())
-        //     .orElseThrow(() -> new RuntimeException("해당 가게의 점주를 찾을 수 없습니다."));
+        UserEntity owner = userRepository.findByStore(orderEntity.getStore())
+            .orElseThrow(() -> new RuntimeException("해당 가게의 점주를 찾을 수 없습니다."));
 
-        // String ownerPhone = owner.getPhone().replace("-", "");
+        String ownerPhone = owner.getPhone().replace("-", "");
 
-        // //점주에게 sms 발송하기위해 이벤트 발행 (모든 save가 정상적으로 실행이 된 이후 발송됨)
-        // eventPublisher.publishEvent(new OrderCreatedEvent(orderEntity.getOrderId(), ownerPhone));
+        //점주에게 sms 발송하기위해 이벤트 발행 (모든 save가 정상적으로 실행이 된 이후 발송됨)
+        eventPublisher.publishEvent(new OrderCreatedEvent(orderEntity.getOrderId(), ownerPhone));
     }
 
     /**
