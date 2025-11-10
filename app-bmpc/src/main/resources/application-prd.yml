@@ -102,9 +102,9 @@ logging:
 # SMS 발송 API 설정
 coolsms:
   api:
-    key: NCSQVL1KBTAIBVIY
-    secret: KUSZJIWNCPW69MBQMOQSDPU36XRINQXQ
-    number: 01055283638
+    key: ${COOLSMS_API_KEY}
+    secret: ${COOLSMS_API_SECRET}
+    number: ${COOLSMS_API_NUMBER}
 
 # Swagger 세팅
 springdoc:
@@ -122,4 +122,4 @@ kakao:
   base-url: "https://dapi.kakao.com"
   api:
     url: "/v2/local/search/address.json"
-    key: 9e02a85d3fa6ef134ef3d0f25d9e26eb
+    key: ${KAKAO_API_KEY}
