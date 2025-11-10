@@ -18,7 +18,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import it.korea.app_bmpc.common.dto.PageVO;
+import it.korea.app_bmpc.common.dto.PageInfo;
 import it.korea.app_bmpc.common.utils.FileUtils;
 import it.korea.app_bmpc.config.WebConfig;
 import it.korea.app_bmpc.kakao.dto.KakaoAddressResponseDTO;
@@ -106,13 +106,8 @@ public class StoreService {
 
         List<StoreDTO.Response> storeList = pageList.getContent().stream().map(StoreDTO.Response::of).toList();
 
-        PageVO pageVO = new PageVO();
-        pageVO.setData(pageList.getNumber(), (int) pageList.getTotalElements());
-
-        resultMap.put("total", pageList.getTotalElements());
         resultMap.put("content", storeList);
-        resultMap.put("pageHTML", pageVO.pageHTML());
-        resultMap.put("page", pageList.getNumber());
+        resultMap.put("pageInfo", PageInfo.of(pageList));
         
         return resultMap;
     }

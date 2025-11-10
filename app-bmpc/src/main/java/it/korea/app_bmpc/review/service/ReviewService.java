@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import it.korea.app_bmpc.admin.dto.AdminReviewSearchDTO;
-import it.korea.app_bmpc.common.dto.PageVO;
+import it.korea.app_bmpc.common.dto.PageInfo;
 import it.korea.app_bmpc.common.utils.FileUtils;
 import it.korea.app_bmpc.config.WebConfig;
 import it.korea.app_bmpc.order.entity.OrderEntity;
@@ -65,13 +65,8 @@ public class ReviewService {
 
         List<ReviewDTO.Response> reviewList = pageList.getContent().stream().map(ReviewDTO.Response::of).toList();
 
-        PageVO pageVO = new PageVO();
-        pageVO.setData(pageList.getNumber(), (int) pageList.getTotalElements());
-
-        resultMap.put("total", pageList.getTotalElements());
         resultMap.put("content", reviewList);
-        resultMap.put("pageHTML", pageVO.pageHTML());
-        resultMap.put("page", pageList.getNumber());
+        resultMap.put("pageInfo", PageInfo.of(pageList));
         
         return resultMap;
     }
@@ -97,18 +92,12 @@ public class ReviewService {
 
         Map<String, Object> resultMap = new HashMap<>();
 
-        //Page<ReviewEntity> pageList = reviewRepository.findAllByStore_storeIdAndDelYn(storeEntity.getStoreId(), "N", pageable);
         Page<ReviewEntity> pageList = reviewRepository.findAllByStoreId(storeEntity.getStoreId(), "N", pageable);
 
         List<ReviewDTO.DetailResponse> reviewList = pageList.getContent().stream().map(ReviewDTO.DetailResponse::of).toList();
 
-        PageVO pageVO = new PageVO();
-        pageVO.setData(pageList.getNumber(), (int) pageList.getTotalElements());
-
-        resultMap.put("total", pageList.getTotalElements());
         resultMap.put("content", reviewList);
-        resultMap.put("pageHTML", pageVO.pageHTML());
-        resultMap.put("page", pageList.getNumber());
+        resultMap.put("pageInfo", PageInfo.of(pageList));
         
         return resultMap;
     }
@@ -128,13 +117,8 @@ public class ReviewService {
 
         List<ReviewDTO.DetailResponse> reviewList = pageList.getContent().stream().map(ReviewDTO.DetailResponse::of).toList();
 
-        PageVO pageVO = new PageVO();
-        pageVO.setData(pageList.getNumber(), (int) pageList.getTotalElements());
-
-        resultMap.put("total", pageList.getTotalElements());
         resultMap.put("content", reviewList);
-        resultMap.put("pageHTML", pageVO.pageHTML());
-        resultMap.put("page", pageList.getNumber());
+        resultMap.put("pageInfo", PageInfo.of(pageList));
 
         return resultMap;
     }
@@ -489,13 +473,8 @@ public class ReviewService {
 
         List<ReviewDTO.Response> reviewList = pageList.getContent().stream().map(ReviewDTO.Response::of).toList();
 
-        PageVO pageVO = new PageVO();
-        pageVO.setData(pageList.getNumber(), (int) pageList.getTotalElements());
-
-        resultMap.put("total", pageList.getTotalElements());
         resultMap.put("content", reviewList);
-        resultMap.put("pageHTML", pageVO.pageHTML());
-        resultMap.put("page", pageList.getNumber());
+        resultMap.put("pageInfo", PageInfo.of(pageList));
         
         return resultMap;
     }

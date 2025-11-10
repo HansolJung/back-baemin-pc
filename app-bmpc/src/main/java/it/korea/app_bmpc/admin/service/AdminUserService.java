@@ -15,7 +15,7 @@ import it.korea.app_bmpc.admin.dto.AdminUserDTO;
 import it.korea.app_bmpc.admin.dto.AdminUserRequestDTO;
 import it.korea.app_bmpc.admin.dto.AdminUserSearchDTO;
 import it.korea.app_bmpc.admin.dto.AdminUserUpdateRequestDTO;
-import it.korea.app_bmpc.common.dto.PageVO;
+import it.korea.app_bmpc.common.dto.PageInfo;
 import it.korea.app_bmpc.store.service.StoreService;
 import it.korea.app_bmpc.user.entity.UserEntity;
 import it.korea.app_bmpc.user.entity.UserRoleEntity;
@@ -47,13 +47,8 @@ public class AdminUserService {
 
         List<AdminUserDTO> userList = pageList.getContent().stream().map(AdminUserDTO::of).toList();
 
-        PageVO pageVO = new PageVO();
-        pageVO.setData(pageList.getNumber(), (int) pageList.getTotalElements());
-
-        resultMap.put("total", pageList.getTotalElements());
         resultMap.put("content", userList);
-        resultMap.put("pageHTML", pageVO.pageHTML());
-        resultMap.put("page", pageList.getNumber());
+        resultMap.put("pageInfo", PageInfo.of(pageList));
         
         return resultMap;
     }
@@ -75,14 +70,9 @@ public class AdminUserService {
 
         List<AdminUserDTO> userList = pageList.getContent().stream().map(AdminUserDTO::of).toList();
 
-        PageVO pageVO = new PageVO();
-        pageVO.setData(pageList.getNumber(), (int) pageList.getTotalElements());
-
-        resultMap.put("total", pageList.getTotalElements());
         resultMap.put("content", userList);
-        resultMap.put("pageHTML", pageVO.pageHTML());
-        resultMap.put("page", pageList.getNumber());
-        
+        resultMap.put("pageInfo", PageInfo.of(pageList));
+
         return resultMap;
     }
 

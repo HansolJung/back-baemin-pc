@@ -9,7 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import it.korea.app_bmpc.common.dto.PageVO;
+import it.korea.app_bmpc.common.dto.PageInfo;
 import it.korea.app_bmpc.favorite.dto.FavoriteStoreDTO;
 import it.korea.app_bmpc.favorite.entity.FavoriteStoreEntity;
 import it.korea.app_bmpc.favorite.repository.FavoriteStoreRepository;
@@ -42,13 +42,8 @@ public class FavoriteStoreService {
 
         List<FavoriteStoreDTO.Response> favoriteList = pageList.getContent().stream().map(FavoriteStoreDTO.Response::of).toList();
 
-        PageVO pageVO = new PageVO();
-        pageVO.setData(pageList.getNumber(), (int) pageList.getTotalElements());
-
-        resultMap.put("total", pageList.getTotalElements());
         resultMap.put("content", favoriteList);
-        resultMap.put("pageHTML", pageVO.pageHTML());
-        resultMap.put("page", pageList.getNumber());
+        resultMap.put("pageInfo", PageInfo.of(pageList));
         
         return resultMap;
     }

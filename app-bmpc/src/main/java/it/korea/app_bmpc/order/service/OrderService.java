@@ -13,7 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import it.korea.app_bmpc.common.dto.PageVO;
+import it.korea.app_bmpc.common.dto.PageInfo;
 import it.korea.app_bmpc.menu.entity.MenuEntity;
 import it.korea.app_bmpc.menu.entity.MenuOptionEntity;
 import it.korea.app_bmpc.menu.repository.MenuOptionRepository;
@@ -58,13 +58,8 @@ public class OrderService {
 
         List<OrderDTO.Response> orderList = pageList.getContent().stream().map(OrderDTO.Response::of).toList();
 
-        PageVO pageVO = new PageVO();
-        pageVO.setData(pageList.getNumber(), (int) pageList.getTotalElements());
-
-        resultMap.put("total", pageList.getTotalElements());
         resultMap.put("content", orderList);
-        resultMap.put("pageHTML", pageVO.pageHTML());
-        resultMap.put("page", pageList.getNumber());
+        resultMap.put("pageInfo", PageInfo.of(pageList));
         
         return resultMap;
     }
@@ -87,13 +82,8 @@ public class OrderService {
 
         List<OrderDTO.Response> orderList = pageList.getContent().stream().map(OrderDTO.Response::of).toList();
 
-        PageVO pageVO = new PageVO();
-        pageVO.setData(pageList.getNumber(), (int) pageList.getTotalElements());
-
-        resultMap.put("total", pageList.getTotalElements());
         resultMap.put("content", orderList);
-        resultMap.put("pageHTML", pageVO.pageHTML());
-        resultMap.put("page", pageList.getNumber());
+        resultMap.put("pageInfo", PageInfo.of(pageList));
         
         return resultMap;
     }
@@ -113,13 +103,8 @@ public class OrderService {
 
         List<OrderDTO.Response> orderList = pageList.getContent().stream().map(OrderDTO.Response::of).toList();
 
-        PageVO pageVO = new PageVO();
-        pageVO.setData(pageList.getNumber(), (int) pageList.getTotalElements());
-
-        resultMap.put("total", pageList.getTotalElements());
         resultMap.put("content", orderList);
-        resultMap.put("pageHTML", pageVO.pageHTML());
-        resultMap.put("page", pageList.getNumber());
+        resultMap.put("pageInfo", PageInfo.of(pageList));
         
         return resultMap;
     }
@@ -144,13 +129,8 @@ public class OrderService {
 
         List<OrderDTO.Response> orderList = pageList.getContent().stream().map(OrderDTO.Response::of).toList();
 
-        PageVO pageVO = new PageVO();
-        pageVO.setData(pageList.getNumber(), (int) pageList.getTotalElements());
-
-        resultMap.put("total", pageList.getTotalElements());
         resultMap.put("content", orderList);
-        resultMap.put("pageHTML", pageVO.pageHTML());
-        resultMap.put("page", pageList.getNumber());
+        resultMap.put("pageInfo", PageInfo.of(pageList));
         
         return resultMap;
     }
@@ -179,13 +159,8 @@ public class OrderService {
 
         List<OrderDTO.Response> orderList = pageList.getContent().stream().map(OrderDTO.Response::of).toList();
 
-        PageVO pageVO = new PageVO();
-        pageVO.setData(pageList.getNumber(), (int) pageList.getTotalElements());
-
-        resultMap.put("total", pageList.getTotalElements());
         resultMap.put("content", orderList);
-        resultMap.put("pageHTML", pageVO.pageHTML());
-        resultMap.put("page", pageList.getNumber());
+        resultMap.put("pageInfo", PageInfo.of(pageList));
         
         return resultMap;
     }
@@ -214,13 +189,8 @@ public class OrderService {
 
         List<OrderDTO.Response> orderList = pageList.getContent().stream().map(OrderDTO.Response::of).toList();
 
-        PageVO pageVO = new PageVO();
-        pageVO.setData(pageList.getNumber(), (int) pageList.getTotalElements());
-
-        resultMap.put("total", pageList.getTotalElements());
         resultMap.put("content", orderList);
-        resultMap.put("pageHTML", pageVO.pageHTML());
-        resultMap.put("page", pageList.getNumber());
+        resultMap.put("pageInfo", PageInfo.of(pageList));
         
         return resultMap;
     }
