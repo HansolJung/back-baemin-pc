@@ -38,7 +38,7 @@ public class FavoriteStoreService {
     public Map<String, Object> getFavoriteStoreList(Pageable pageable, String userId) throws Exception {
         Map<String, Object> resultMap = new HashMap<>();
 
-        Page<FavoriteStoreEntity> pageList = favoriteStoreRepository.findAllByUser_userId(userId, pageable);
+        Page<FavoriteStoreEntity> pageList = favoriteStoreRepository.findAllByUser_userIdAndStore_delYn(userId, "N", pageable);
 
         List<FavoriteStoreDTO.Response> favoriteList = pageList.getContent().stream().map(FavoriteStoreDTO.Response::of).toList();
 

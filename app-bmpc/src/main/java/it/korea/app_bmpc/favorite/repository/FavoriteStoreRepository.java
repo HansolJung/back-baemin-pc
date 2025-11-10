@@ -13,8 +13,8 @@ import it.korea.app_bmpc.user.entity.UserEntity;
 
 public interface FavoriteStoreRepository extends JpaRepository<FavoriteStoreEntity, Integer> {
 
-    @EntityGraph(attributePaths = {"user", "store", "store.fileList"})  // N+1 현상 해결
-    Page<FavoriteStoreEntity> findAllByUser_userId(String userId, Pageable pageable);
+    @EntityGraph(attributePaths = {"user", "store", "store.fileList", "store.hourList"})  // N+1 현상 해결
+    Page<FavoriteStoreEntity> findAllByUser_userIdAndStore_delYn(String userId, String delYn, Pageable pageable);
 
     boolean existsByUserAndStore(UserEntity user, StoreEntity store);
 
