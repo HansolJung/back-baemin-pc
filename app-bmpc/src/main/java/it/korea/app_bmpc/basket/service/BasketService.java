@@ -2,12 +2,12 @@ package it.korea.app_bmpc.basket.service;
 
 import java.text.NumberFormat;
 import java.time.LocalDateTime;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -247,58 +247,95 @@ public class BasketService {
 
         basketEntity.setStore(store);
 
-        // 장바구니 항목 생성
-        BasketItemEntity basketItemEntity = new BasketItemEntity();
-        basketItemEntity.setMenu(menu);
-        basketItemEntity.setMenuName(menu.getMenuName());
-        basketItemEntity.setMenuPrice(menu.getPrice());
-        basketItemEntity.setQuantity(menuReq.getQuantity());
-
-        // 옵션은 제외한 기본 메뉴 금액
-        int totalItemPrice = menu.getPrice() * menuReq.getQuantity();
-
         // 옵션이 있는 경우는 옵션 id들을 모아서 일괄 조회
         List<BasketDTO.InnerOptionRequest> optionReqList = menuReq.getOptionList();
-        Map<Integer, MenuOptionEntity> menuOptionMap = Collections.emptyMap();
+        Map<Integer, MenuOptionEntity> menuOptionMap = new HashMap<>();
+
         if (optionReqList != null && !optionReqList.isEmpty()) {
             List<Integer> optIdList = optionReqList.stream()
                 .map(BasketDTO.InnerOptionRequest::getMenuOptId)
                 .distinct()
                 .toList();
 
-            List<MenuOptionEntity> menuOptionEntityList = menuOptionRepository.findAllById(optIdList);
-            menuOptionMap = menuOptionEntityList.stream()
-                .collect(Collectors.toMap(MenuOptionEntity::getMenuOptId, o -> o));
+            List<MenuOptionEntity> optionEntityList = menuOptionRepository.findAllById(optIdList);
+            optionEntityList.forEach(o -> menuOptionMap.put(o.getMenuOptId(), o));
         }
 
-        // 옵션 엔티티 생성 및 item에 추가
-        if (optionReqList != null && !optionReqList.isEmpty()) {
-            for (BasketDTO.InnerOptionRequest optionReq : optionReqList) {
-                MenuOptionEntity menuOption = menuOptionMap.get(optionReq.getMenuOptId());
-                if (menuOption == null) {
-                    throw new RuntimeException("옵션이 존재하지 않습니다. menuOptId=" + optionReq.getMenuOptId());
+        // 동일 메뉴 + 동일 옵션 조합인지 체크
+        Optional<BasketItemEntity> sameItemEntity = basketEntity.getItemList().stream()
+            .filter(item -> item.getMenu().getMenuId() == menu.getMenuId())   // 만약 메뉴의 아이디가 같다면... 2번째 필터 진행
+            .filter(item -> {   // 메뉴 옵션까지 같은지 비교
+                Set<BasketItemOptionEntity> originItemOpts = item.getItemOptionList();   // 장바구니에 이미 담겨있던 항목의 옵션 목록
+                int optionReqCount = optionReqList == null ? 0 : optionReqList.size();   // 새로 담으려는 항목의 옵션 개수
+
+                if (originItemOpts.size() != optionReqCount) {   // 장바구니 항목의 옵션 개수와 요청 옵션 개수가 다르면 같은 조합이 아니기 때문에 걸러내기
+                    return false;
                 }
 
-                BasketItemOptionEntity basketItemOptionEntity = new BasketItemOptionEntity();
-                basketItemOptionEntity.setMenuOption(menuOption);
-                basketItemOptionEntity.setMenuOptName(menuOption.getMenuOptName());
-                basketItemOptionEntity.setMenuOptPrice(menuOption.getPrice());
-                basketItemOptionEntity.setQuantity(optionReq.getQuantity());
+                if (optionReqCount == 0) {   // 만약 장바구니 항목의 옵션 개수도 0이고 요청 옵션 개수가 0이면 같은 조합이기 때문에 통과
+                    return true;
+                }
 
-                int totalOptionPrice = menuOption.getPrice() * optionReq.getQuantity();
-                basketItemOptionEntity.setTotalPrice(totalOptionPrice);
+                // 옵션의 개수와 각각의 옵션 아이디/수량이 일치하면 같은 조합이기 때문에 통과
+                return optionReqList.stream().allMatch(req ->
+                        originItemOpts.stream().anyMatch(e ->
+                            e.getMenuOption().getMenuOptId() == req.getMenuOptId() &&
+                            e.getQuantity() == req.getQuantity()));
+            })
+            .findFirst();  // 필터를 통과한 첫번째 장바구니 항목 선택
 
-                // 연관관계 설정
-                basketItemEntity.addItemOption(basketItemOptionEntity);
+        // 동일한 메뉴(메뉴 옵션 포함)를 추가했다면 새로 생성하는 것이 아니라 기존 장바구니 항목의 수량과 금액을 증가
+        if (sameItemEntity.isPresent()) {
+            BasketItemEntity existingItem = sameItemEntity.get();
+            existingItem.setQuantity(existingItem.getQuantity() + menuReq.getQuantity());
 
-                // 옵션 금액을 항목 총액에 추가
-                totalItemPrice += totalOptionPrice;
+            int totalItemPrice = menu.getPrice() * existingItem.getQuantity();
+            int totalOptionPrice = existingItem.getItemOptionList().stream()
+                .mapToInt(opt -> opt.getMenuOptPrice() * opt.getQuantity())
+                .sum();
+
+            existingItem.setTotalPrice(totalItemPrice + totalOptionPrice);
+        } else { // 기존 장바구니 항목들과 겹치지 않는다면...
+
+            // 새로운 장바구니 항목 생성
+            BasketItemEntity basketItemEntity = new BasketItemEntity();
+            basketItemEntity.setMenu(menu);
+            basketItemEntity.setMenuName(menu.getMenuName());
+            basketItemEntity.setMenuPrice(menu.getPrice());
+            basketItemEntity.setQuantity(menuReq.getQuantity());
+
+            // 옵션은 제외한 기본 메뉴 금액
+            int totalItemPrice = menu.getPrice() * menuReq.getQuantity();
+
+            // 옵션 엔티티 생성 및 item에 추가
+            if (optionReqList != null && !optionReqList.isEmpty()) {
+                for (BasketDTO.InnerOptionRequest optionReq : optionReqList) {
+                    MenuOptionEntity menuOption = menuOptionMap.get(optionReq.getMenuOptId());
+                    if (menuOption == null) {
+                        throw new RuntimeException("옵션이 존재하지 않습니다. menuOptId=" + optionReq.getMenuOptId());
+                    }
+
+                    BasketItemOptionEntity basketItemOptionEntity = new BasketItemOptionEntity();
+                    basketItemOptionEntity.setMenuOption(menuOption);
+                    basketItemOptionEntity.setMenuOptName(menuOption.getMenuOptName());
+                    basketItemOptionEntity.setMenuOptPrice(menuOption.getPrice());
+                    basketItemOptionEntity.setQuantity(optionReq.getQuantity());
+
+                    int totalOptionPrice = menuOption.getPrice() * optionReq.getQuantity();
+                    basketItemOptionEntity.setTotalPrice(totalOptionPrice);
+
+                    // 연관관계 설정
+                    basketItemEntity.addItemOption(basketItemOptionEntity);
+
+                    // 옵션 금액을 항목 총액에 추가
+                    totalItemPrice += totalOptionPrice;
+                }
             }
-        }
 
-        // 항목 총액 설정 후 장바구니에 추가
-        basketItemEntity.setTotalPrice(totalItemPrice);
-        basketEntity.addItem(basketItemEntity);
+            // 항목 총액 설정 후 장바구니에 추가
+            basketItemEntity.setTotalPrice(totalItemPrice);
+            basketEntity.addItem(basketItemEntity);
+        }
 
         // 장바구니 총액 계산
         int totalBasketPrice = basketEntity.getItemList().stream().mapToInt(BasketItemEntity::getTotalPrice).sum();
