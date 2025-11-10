@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import it.korea.app_bmpc.store.entity.StoreEntity;
+import it.korea.app_bmpc.user.dto.OwnerResponseDTO;
 import it.korea.app_bmpc.user.dto.UserDepositRequestDTO;
 import it.korea.app_bmpc.user.dto.UserRequestDTO;
 import it.korea.app_bmpc.user.dto.UserResponseDTO;
@@ -111,6 +112,26 @@ public class UserService {
 
         return UserResponseDTO.of(userEntity);
     }
+
+    /**
+     * 점주 정보 가져오기
+     * @param storeId 가게 아이디
+     * @return
+     * @throws Exception
+     */
+    @Transactional(readOnly = true)
+    public OwnerResponseDTO getOwner(int storeId) throws Exception {
+
+        UserEntity userEntity = userRepository.findByStore_storeId(storeId)
+            .orElseThrow(() -> new RuntimeException("해당 가게를 가지고 있는 점주가 존재하지 않습니다."));
+
+        if ("Y".equals(userEntity.getDelYn())) {
+            throw new RuntimeException("삭제된 점주의 정보는 가져올 수 없습니다.");
+        }
+
+        return OwnerResponseDTO.of(userEntity);
+    }
+
 
     /**
      * 나의 정보 수정하기

@@ -48,4 +48,6 @@ public interface UserRepository extends JpaRepository<UserEntity, String>, JpaSp
     Optional<AdminUserProjection> getUserById(@Param("userId") String userId);   // 네이티브 쿼리 사용
 
     Optional<UserEntity> findByStore(StoreEntity store);
+
+    Optional<UserEntity> findByStore_storeId(int storeId);
 }

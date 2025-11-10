@@ -26,7 +26,9 @@ import it.korea.app_bmpc.store.dto.CategoryDTO;
 import it.korea.app_bmpc.store.dto.StoreDTO;
 import it.korea.app_bmpc.store.dto.StoreSearchDTO;
 import it.korea.app_bmpc.store.service.StoreService;
+import it.korea.app_bmpc.user.dto.OwnerResponseDTO;
 import it.korea.app_bmpc.user.dto.UserSecureDTO;
+import it.korea.app_bmpc.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -37,6 +39,7 @@ import lombok.RequiredArgsConstructor;
 public class StoreApiController {
 
     private final StoreService storeService;
+    private final UserService userService;
     
     /**
      * 가게 카테고리 리스트 가져오기
@@ -82,11 +85,14 @@ public class StoreApiController {
 
         Map<String, Object> resultMap = new HashMap<>();
         StoreDTO.Detail dto = storeService.getStore(storeId);
+        OwnerResponseDTO ownerDto = userService.getOwner(storeId);   // 점주 정보 가져오기
 
         resultMap.put("vo", dto);
+        resultMap.put("ownerInfo", ownerDto);    // 점주 정보
 
         return ResponseEntity.ok().body(ApiResponse.ok(resultMap));
     }
+
 
     /**
      * 나의 가게 상세정보 가져오기
