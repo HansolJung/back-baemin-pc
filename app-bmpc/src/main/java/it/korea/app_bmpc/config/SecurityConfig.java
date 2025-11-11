@@ -92,6 +92,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/logout/**").permitAll()
                 .requestMatchers("/api/v1/refresh/**").permitAll()
                 .requestMatchers("/api/v1/register/**").permitAll()
+                .requestMatchers("/api/v1/passwd/**").permitAll() 
                 .requestMatchers("/swagger-ui/**").permitAll()
                 .requestMatchers("/v3/api-docs/**").permitAll()
                 .requestMatchers("/api/v1/sse/subscribe").authenticated()

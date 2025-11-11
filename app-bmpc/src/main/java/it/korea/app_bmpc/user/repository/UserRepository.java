@@ -50,4 +50,6 @@ public interface UserRepository extends JpaRepository<UserEntity, String>, JpaSp
     Optional<UserEntity> findByStore(StoreEntity store);
 
     Optional<UserEntity> findByStore_storeId(int storeId);
+
+    Optional<UserEntity> findByEmail(String email);
 }

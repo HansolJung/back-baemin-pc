@@ -11,7 +11,7 @@ public class AdminUserRequestDTO {
 
     @NotBlank(message = "아이디는 필수 항목입니다.")
     private String userId;
-    @NotBlank(message = "패스워드는 필수 항목입니다.")
+    @NotBlank(message = "비밀번호는 필수 항목입니다.")
     private String passwd;
     @NotBlank(message = "권한은 필수 항목입니다.")
     private String userRole;

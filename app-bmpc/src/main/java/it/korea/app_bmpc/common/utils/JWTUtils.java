@@ -10,6 +10,7 @@ import javax.crypto.spec.SecretKeySpec;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
@@ -67,6 +68,44 @@ public class JWTUtils {
         }
 
         return false;
+    }
+
+    // 비밀번호 재설정 토큰 발급
+    public String createPasswordResetToken(String email) {
+        return Jwts.builder()
+            .subject("password-reset")
+            .claim("email", email)
+            .issuedAt(Timestamp.valueOf(LocalDateTime.now()))
+            .expiration(Timestamp.valueOf(LocalDateTime.now().plusMinutes(30)))
+            .signWith(secretKey)
+            .compact();
+    }
+
+    // 비밀번해 재설정 토큰 유효성 체크
+    public String validatePasswordResetToken(String token) {
+        try {
+            Claims claims = Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+
+            // password-reset 이라는 이름으로 발급된 토큰인지 체크
+            if (!"password-reset".equals(claims.getSubject())) {
+                throw new RuntimeException("비밀번호 재설정 토큰이 아닙니다.");
+            }
+
+            return claims.get("email", String.class);
+
+        } catch (SecurityException | MalformedJwtException e) {
+            throw new RuntimeException("유효하지 않은 비밀번호 재설정 토큰 서명입니다.");
+        } catch (ExpiredJwtException e) {
+            throw new RuntimeException("만료된 비밀번호 재설정 토큰입니다.");
+        } catch (UnsupportedJwtException e) {
+            throw new RuntimeException("지원되지 않는 비밀번호 재설정 토큰입니다.");
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("잘못된 비밀번호 재설정 토큰입니다.");
+        }
     }
 
     // 토큰 카테고리 추출
