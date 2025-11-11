@@ -285,10 +285,22 @@ public class BasketService {
             })
             .findFirst();  // 필터를 통과한 첫번째 장바구니 항목 선택
 
-        // 동일한 메뉴(메뉴 옵션 포함)를 추가했다면 새로 생성하는 것이 아니라 기존 장바구니 항목의 수량과 금액을 증가
+        // 동일한 메뉴(메뉴 옵션 포함)를 추가했다면 새로 생성하는 것이 아니라 기존 장바구니 항목(메뉴 옵션 포함)의 수량과 금액을 증가
         if (sameItemEntity.isPresent()) {
             BasketItemEntity existingItem = sameItemEntity.get();
+
+            // 메뉴 수량 증가
             existingItem.setQuantity(existingItem.getQuantity() + menuReq.getQuantity());
+
+            // 메뉴 옵션 수량 증가
+            if (optionReqList != null) {
+                for (BasketDTO.InnerOptionRequest optionReq : optionReqList) {
+                    existingItem.getItemOptionList().stream()
+                        .filter(opt -> opt.getMenuOption().getMenuOptId() == optionReq.getMenuOptId())
+                        .findFirst()
+                        .ifPresent(opt -> opt.setQuantity(opt.getQuantity() + optionReq.getQuantity()));
+                }
+            }
 
             int totalItemPrice = menu.getPrice() * existingItem.getQuantity();
             int totalOptionPrice = existingItem.getItemOptionList().stream()
