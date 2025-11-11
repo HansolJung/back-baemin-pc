@@ -8,6 +8,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -262,43 +263,51 @@ public class BasketService {
             optionEntityList.forEach(o -> menuOptionMap.put(o.getMenuOptId(), o));
         }
 
-        // 동일 메뉴 + 동일 옵션 조합인지 체크
+        // 동일 메뉴 + 동일 메뉴 옵션 조합인지 체크
         Optional<BasketItemEntity> sameItemEntity = basketEntity.getItemList().stream()
             .filter(item -> item.getMenu().getMenuId() == menu.getMenuId())   // 만약 메뉴의 아이디가 같다면... 2번째 필터 진행
             .filter(item -> {   // 메뉴 옵션까지 같은지 비교
-                Set<BasketItemOptionEntity> originItemOpts = item.getItemOptionList();   // 장바구니에 이미 담겨있던 항목의 옵션 목록
-                int optionReqCount = optionReqList == null ? 0 : optionReqList.size();   // 새로 담으려는 항목의 옵션 개수
+                Set<BasketItemOptionEntity> originItemOptSet = item.getItemOptionList();   // 장바구니에 이미 담겨있던 항목의 메뉴 옵션 목록
+                int optionReqCount = optionReqList == null ? 0 : optionReqList.size();   // 새로 담으려는 항목의 메뉴 옵션 개수
 
-                if (originItemOpts.size() != optionReqCount) {   // 장바구니 항목의 옵션 개수와 요청 옵션 개수가 다르면 같은 조합이 아니기 때문에 걸러내기
+                if (originItemOptSet.size() != optionReqCount) {   // 장바구니 항목의 메뉴 옵션 개수와 요청 메뉴 옵션 개수가 다르면 같은 조합이 아니기 때문에 걸러내기
                     return false;
                 }
 
-                if (optionReqCount == 0) {   // 만약 장바구니 항목의 옵션 개수도 0이고 요청 옵션 개수가 0이면 같은 조합이기 때문에 통과
+                if (optionReqCount == 0) {   // 만약 장바구니 항목의 메뉴 옵션 개수도 0이고 요청 메뉴 옵션 개수가 0이면 같은 조합이기 때문에 통과
                     return true;
                 }
 
-                // 옵션의 개수와 각각의 옵션 아이디/수량이 일치하면 같은 조합이기 때문에 통과
-                return optionReqList.stream().allMatch(req ->
-                        originItemOpts.stream().anyMatch(e ->
-                            e.getMenuOption().getMenuOptId() == req.getMenuOptId() &&
-                            e.getQuantity() == req.getQuantity()));
+                // 메뉴 옵션 아이디들이 서로 일치하는지 비교
+                Set<Integer> originItemOptIdSet = originItemOptSet.stream()
+                    .map(opt -> opt.getMenuOption().getMenuOptId())
+                    .collect(Collectors.toSet());
+
+                Set<Integer> reqItemOptIdSet = optionReqList.stream()
+                    .map(BasketDTO.InnerOptionRequest::getMenuOptId)
+                    .collect(Collectors.toSet());
+
+                return originItemOptIdSet.equals(reqItemOptIdSet);
             })
             .findFirst();  // 필터를 통과한 첫번째 장바구니 항목 선택
 
-        // 동일한 메뉴(메뉴 옵션 포함)를 추가했다면 새로 생성하는 것이 아니라 기존 장바구니 항목(메뉴 옵션 포함)의 수량과 금액을 증가
+        // 동일한 메뉴(메뉴 옵션 포함)를 추가했다면 새로 생성하는 것이 아니라 기존 장바구니 항목(메뉴 옵션 포함)의 수량과 총액을 증가
         if (sameItemEntity.isPresent()) {
             BasketItemEntity existingItem = sameItemEntity.get();
 
             // 메뉴 수량 증가
             existingItem.setQuantity(existingItem.getQuantity() + menuReq.getQuantity());
 
-            // 메뉴 옵션 수량 증가
+            // 메뉴 옵션의 수량과 총액 갱신하기
             if (optionReqList != null) {
                 for (BasketDTO.InnerOptionRequest optionReq : optionReqList) {
                     existingItem.getItemOptionList().stream()
                         .filter(opt -> opt.getMenuOption().getMenuOptId() == optionReq.getMenuOptId())
                         .findFirst()
-                        .ifPresent(opt -> opt.setQuantity(opt.getQuantity() + optionReq.getQuantity()));
+                        .ifPresent(opt -> {
+                            opt.setQuantity(opt.getQuantity() + optionReq.getQuantity());  // 메뉴 옵션 수량 증가
+                            opt.setTotalPrice(opt.getMenuOptPrice() * opt.getQuantity());  // 메뉴 옵션 총액 증가
+                        });
                 }
             }
 
@@ -307,6 +316,7 @@ public class BasketService {
                 .mapToInt(opt -> opt.getMenuOptPrice() * opt.getQuantity())
                 .sum();
 
+            // 메뉴 총액 갱신
             existingItem.setTotalPrice(totalItemPrice + totalOptionPrice);
         } else { // 기존 장바구니 항목들과 겹치지 않는다면...
 

@@ -15,46 +15,36 @@ public class EmailService {
 
     private final JavaMailSender javaMailSender;
 
-    public void sendMimeMessage() {
+    public void sendPasswordResetEmail(String toEmail, String token) {
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
 
-        try{
-            MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage, false, "UTF-8");
+        try {
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, false, "UTF-8");
+            
+            helper.setTo(toEmail);
+            helper.setSubject("비밀번호 재설정 안내");
 
-            // 메일을 받을 수신자 설정
-            mimeMessageHelper.setTo("solsol3638@naver.com");
-            // 메일의 제목 설정
-            mimeMessageHelper.setSubject("html 적용 테스트 메일 제목");
-
-            // html 문법 적용한 메일의 내용
+            String resetUrl = "http://localhost:4000/reset-password?token=" + token;
             String content = """
                     <!DOCTYPE html>
-                    <html xmlns:th="http://www.thymeleaf.org">
-                                        
+                    <html>
                     <body>
-                    <div style="margin:100px;">
-                        <h1> 테스트 메일 </h1>
-                        <br>
-                                        
-                                        
-                        <div align="center" style="border:1px solid black;">
-                            <h3> 테스트 메일 내용 </h3>
-                        </div>
-                        <br/>
+                    <div style="margin:50px;">
+                        <h2>비밀번호 재설정 안내</h2>
+                        <p>아래 링크를 클릭하여 새 비밀번호를 설정해주세요.</p>
+                        <a href="%s">비밀번호 재설정</a>
+                        <p>링크는 30분 동안 유효합니다.</p>
                     </div>
-                                        
                     </body>
                     </html>
-                    """;
-            
-            // 메일의 내용 설정
-            mimeMessageHelper.setText(content, true);
+                    """.formatted(resetUrl);
 
+            helper.setText(content, true);
             javaMailSender.send(mimeMessage);
+            log.info("비밀번호 재설정 메일 발송 성공: {}", toEmail);
 
-            log.info("메일 발송 성공!");
         } catch (Exception e) {
-            log.info("메일 발송 실패!");
+            log.error("메일 발송 실패", e);
             throw new RuntimeException(e);
         }
     }

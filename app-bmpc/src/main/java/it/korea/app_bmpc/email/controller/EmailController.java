@@ -16,6 +16,6 @@ public class EmailController {
 
     @GetMapping("/test/email")
     public void sendMimeMessage() {
-        emailService.sendMimeMessage();
+        emailService.sendPasswordResetEmail("solsol3638@naver.com", "JWT");
     }
 }
