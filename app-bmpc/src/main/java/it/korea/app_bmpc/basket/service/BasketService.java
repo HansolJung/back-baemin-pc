@@ -180,6 +180,7 @@ public class BasketService {
         // 장바구니 비우기
         basketEntity.getItemList().clear();
         basketEntity.setTotalPrice(0);
+        basketEntity.setStore(null);
         basketRepository.save(basketEntity);
 
         // 점주 전화번호 찾기
@@ -367,6 +368,10 @@ public class BasketService {
         // 장바구니 항목 삭제
         basketEntity.getItemList().remove(basketItemEntity);
 
+        if (basketEntity.getItemList().isEmpty()) {  // 만약 장바구니가 비워져 있으면...
+            basketEntity.setStore(null);  // 전부 삭제했다는 뜻이므로 연결되어 있던 가게 제거
+        }
+
         // 장바구니 총액 계산
         int totalBasketPrice = basketEntity.getItemList().stream()
             .mapToInt(BasketItemEntity::getTotalPrice)
@@ -393,6 +398,9 @@ public class BasketService {
 
         // 장바구니 항목 전부 제거
         basket.getItemList().clear();
+
+        // 장바구니와 연결되어 있던 가게 제거
+        basket.setStore(null);
 
         // 장바구니 총액 초기화
         basket.setTotalPrice(0);
