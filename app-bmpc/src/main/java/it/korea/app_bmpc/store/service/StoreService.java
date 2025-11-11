@@ -14,10 +14,11 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import it.korea.app_bmpc.admin.dto.AdminStoreSearchDTO;
+import it.korea.app_bmpc.admin.dto.AdminStoreStatusRequestDTO;
 import it.korea.app_bmpc.common.dto.PageInfo;
 import it.korea.app_bmpc.common.utils.FileUtils;
 import it.korea.app_bmpc.config.WebConfig;
@@ -35,6 +36,7 @@ import it.korea.app_bmpc.store.entity.StoreFileEntity;
 import it.korea.app_bmpc.store.entity.StoreHourEntity;
 import it.korea.app_bmpc.store.repository.CategoryRepository;
 import it.korea.app_bmpc.store.repository.StoreRepository;
+import it.korea.app_bmpc.store.repository.AdminStoreSearchSpecification;
 import it.korea.app_bmpc.store.repository.StoreSearchSpecification;
 import it.korea.app_bmpc.user.entity.UserEntity;
 import it.korea.app_bmpc.user.repository.UserRepository;
@@ -102,6 +104,30 @@ public class StoreService {
         searchDTO.setUserLongitude(userLongitude);
 
         StoreSearchSpecification searchSpecification = new StoreSearchSpecification(searchDTO);
+        pageList = storeRepository.findAll(searchSpecification, pageable);
+
+        List<StoreDTO.Response> storeList = pageList.getContent().stream().map(StoreDTO.Response::of).toList();
+
+        resultMap.put("content", storeList);
+        resultMap.put("pageInfo", PageInfo.of(pageList));
+        
+        return resultMap;
+    }
+
+    /**
+     * 가게 리스트 가져오기 (어드민)
+     * @param pageable 페이징 객체
+     * @param searchAdminDTO 검색 내용
+     * @return
+     * @throws Exception
+     */
+    @Transactional(readOnly = true)
+    public Map<String, Object> getStoreListByAdmin(Pageable pageable, AdminStoreSearchDTO adminSearchDTO) throws Exception {
+        Map<String, Object> resultMap = new HashMap<>();
+
+        Page<StoreEntity> pageList = null;
+
+        AdminStoreSearchSpecification searchSpecification = new AdminStoreSearchSpecification(adminSearchDTO);
         pageList = storeRepository.findAll(searchSpecification, pageable);
 
         List<StoreDTO.Response> storeList = pageList.getContent().stream().map(StoreDTO.Response::of).toList();
@@ -447,6 +473,27 @@ public class StoreService {
     }
 
     /**
+     * 가게 영업 상태 변경하기 (어드민)
+     * @param request 가게 영업 상태 객체
+     * @throws Exception
+     */
+    @Transactional
+    public void changeStoreStatusByAdmin(AdminStoreStatusRequestDTO request) throws Exception {
+
+        StoreEntity store = storeRepository.findById(request.getStoreId())
+            .orElseThrow(() -> new RuntimeException("해당 가게가 존재하지 않습니다."));
+
+        String closeYn = request.getCloseYn();
+
+        // storeHourEntity 의 closeYn 값 모두 변경
+        for (StoreHourEntity storeHour : store.getHourList()) {
+            storeHour.setCloseYn(closeYn);
+        }
+
+        storeRepository.save(store);
+    }
+
+    /**
      * 가게 삭제하기
      * @param storeId 가게 아이디
      * @param userId 사용자 아이디
@@ -519,7 +566,7 @@ public class StoreService {
      * @param storeId 가게 아이디
      * @throws Exception
      */
-    @Transactional(propagation = Propagation.REQUIRED) // AdminUserService의 회원 삭제 메서드에서 이 메서드를 호출 시 같은 트랜잭션을 공유하도록 함
+    @Transactional
     public void deleteStoreByAdmin(int storeId) throws Exception {
 
         StoreEntity entity = storeRepository.getStore(storeId)   // fetch join 을 사용한 getStore 메서드 호출
@@ -530,11 +577,11 @@ public class StoreService {
         }
 
         // 주문완료 상태의 주문을 모두 조회
-        List<OrderEntity> completedOrders = orderRepository.findAllByStoreAndStatus(entity, "주문완료");
+        List<OrderEntity> completedOrderList = orderRepository.findAllByStoreAndStatus(entity, "주문완료");
 
         // 주문완료 상태의 주문들이 아직 존재한다면 모두 취소 처리하고 보유금을 원복시킴
-        if (!completedOrders.isEmpty()) {
-            completedOrders.forEach(order -> {
+        if (!completedOrderList.isEmpty()) {
+            completedOrderList.forEach(order -> {
 
                 order.setStatus("주문취소");
 

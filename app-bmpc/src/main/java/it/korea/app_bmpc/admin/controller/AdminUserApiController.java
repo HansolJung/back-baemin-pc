@@ -20,12 +20,15 @@ import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import it.korea.app_bmpc.admin.dto.AdminReviewSearchDTO;
+import it.korea.app_bmpc.admin.dto.AdminStoreStatusRequestDTO;
 import it.korea.app_bmpc.admin.dto.AdminUserDTO;
 import it.korea.app_bmpc.admin.dto.AdminUserRequestDTO;
 import it.korea.app_bmpc.admin.dto.AdminUserSearchDTO;
 import it.korea.app_bmpc.admin.dto.AdminUserUpdateRequestDTO;
+import it.korea.app_bmpc.admin.dto.AdminStoreSearchDTO;
 import it.korea.app_bmpc.admin.service.AdminUserService;
 import it.korea.app_bmpc.common.dto.ApiResponse;
+import it.korea.app_bmpc.menu.service.MenuService;
 import it.korea.app_bmpc.order.dto.OrderSearchDTO;
 import it.korea.app_bmpc.order.dto.OrderStatusDTO;
 import it.korea.app_bmpc.order.service.OrderService;
@@ -44,6 +47,7 @@ public class AdminUserApiController {
     private final OrderService orderService;
     private final ReviewService reviewService;
     private final StoreService storeService;
+    private final MenuService menuService;
 
     /**
      * 회원 리스트 가져오기
@@ -211,6 +215,39 @@ public class AdminUserApiController {
     }
 
     /**
+     * 가게 리스트 가져오기
+     * @param pageable 페이징 객체
+     * @param searchDTO 검색 내용
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/admin/store")
+    @Operation(summary = "가게 리스트 가져오기")
+    public ResponseEntity<?> getStoreList(@PageableDefault(page = 0, size = 10, 
+            sort = "updateDate", direction = Direction.DESC) Pageable pageable,
+            @Valid AdminStoreSearchDTO searchAdminDTO) throws Exception {
+
+        Map<String, Object> resultMap = storeService.getStoreListByAdmin(pageable, searchAdminDTO);
+
+        return ResponseEntity.ok().body(ApiResponse.ok(resultMap));
+    }
+
+    /**
+     * 가게 영업 상태 변경하기
+     * @param request 가게 영업 상태 객체
+     * @return
+     * @throws Exception
+     */
+    @PutMapping("/admin/store/status")
+    @Operation(summary = "가게 영업 상태 변경하기")
+    public ResponseEntity<?> changeStoreStatus(@Valid @RequestBody AdminStoreStatusRequestDTO request) throws Exception {
+
+        storeService.changeStoreStatusByAdmin(request);
+
+        return ResponseEntity.ok().body(ApiResponse.ok("OK"));
+    }
+
+    /**
      * 가게 삭제하기
      * @param storeId 가게 아이디
      * @param user 로그인한 사용자
@@ -222,6 +259,36 @@ public class AdminUserApiController {
     public ResponseEntity<?> deleteStore(@PathVariable(name = "storeId") int storeId) throws Exception {
  
         storeService.deleteStoreByAdmin(storeId);
+
+        return ResponseEntity.ok().body(ApiResponse.ok("OK"));
+    }
+
+    /**
+     * 메뉴 삭제하기
+     * @param menuId 메뉴 아이디
+     * @return
+     * @throws Exception
+     */
+    @DeleteMapping("/admin/menu/{menuId}")
+    @Operation(summary = "메뉴 삭제하기")
+    public ResponseEntity<?> deleteMenu(@PathVariable(name = "menuId") int menuId) throws Exception {
+ 
+        menuService.deleteMenuByAdmin(menuId);
+
+        return ResponseEntity.ok().body(ApiResponse.ok("OK"));
+    }
+
+    /**
+     * 메뉴 옵션 삭제하기
+     * @param menuOptId 메뉴 옵션 아이디
+     * @return
+     * @throws Exception
+     */
+    @DeleteMapping("/admin/menu/option/{menuOptId}")
+    @Operation(summary = "메뉴 옵션 삭제하기")
+    public ResponseEntity<?> deleteMenuOption(@PathVariable(name = "menuOptId") int menuOptId) throws Exception {
+ 
+        menuService.deleteMenuOptionByAdmin(menuOptId);
 
         return ResponseEntity.ok().body(ApiResponse.ok("OK"));
     }

@@ -712,6 +712,48 @@ public class MenuService {
     }
 
     /**
+     * 메뉴 삭제하기 (어드민)
+     * @param menuId 메뉴 아이디
+     * @throws Exception
+     */
+    @Transactional
+    public void deleteMenuByAdmin(int menuId) throws Exception {
+
+        MenuEntity entity = menuRepository.findById(menuId)
+            .orElseThrow(() -> new RuntimeException("해당 메뉴가 존재하지 않습니다."));
+
+        // 이미 삭제된 경우 예외처리
+        if ("Y".equals(entity.getDelYn())) {
+            throw new RuntimeException("이미 삭제된 메뉴입니다.");
+        }
+        
+        MenuCategoryEntity category = entity.getMenuCategory();
+        if (category == null || "Y".equals(category.getDelYn())) {
+            throw new RuntimeException("삭제된 메뉴 카테고리 하위에 있는 메뉴는 삭제할 수 없습니다.");
+        }
+
+        StoreEntity store = category.getStore();
+        if (store == null || "Y".equals(store.getDelYn())) {
+            throw new RuntimeException("삭제된 가게 하위에 있는 메뉴는 삭제할 수 없습니다.");
+        }
+
+        entity.setDelYn("Y");
+
+        // 하위 메뉴 옵션 그룹, 메뉴 옵션까지 전부 삭제 처리
+        if (entity.getMenuOptionGroupList() != null && !entity.getMenuOptionGroupList().isEmpty()) {
+            entity.getMenuOptionGroupList().forEach(group -> {
+                group.setDelYn("Y");
+
+                if (group.getMenuOptionList() != null && !group.getMenuOptionList().isEmpty()) {
+                    group.getMenuOptionList().forEach(option -> option.setDelYn("Y"));
+                }
+            });
+        }
+
+        menuRepository.save(entity);
+    }
+
+    /**
      * 메뉴 옵션 그룹 삭제하기
      * @param menuOptGrpId 메뉴 옵션 그룹 아이디
      * @param userId 사용자 아이디
@@ -816,6 +858,47 @@ public class MenuService {
 
         if (userEntity.getStore() == null || userEntity.getStore().getStoreId() != store.getStoreId()) {
             throw new RuntimeException("해당 가게에 대한 권한이 없습니다.");
+        }
+
+        entity.setDelYn("Y");
+
+        menuOptionRepository.save(entity);
+    }
+
+    /**
+     * 메뉴 옵션 삭제하기 (어드민)
+     * @param menuOptId 메뉴 옵션 아이디
+     * @throws Exception
+     */
+    @Transactional
+    public void deleteMenuOptionByAdmin(int menuOptId) throws Exception {
+
+        MenuOptionEntity entity = menuOptionRepository.findById(menuOptId)
+            .orElseThrow(() -> new RuntimeException("해당 메뉴 옵션이 존재하지 않습니다."));
+
+        // 이미 삭제된 경우 예외처리
+        if ("Y".equals(entity.getDelYn())) {
+            throw new RuntimeException("이미 삭제된 메뉴 옵션입니다.");
+        }
+
+        MenuOptionGroupEntity groupEntity = entity.getMenuOptionGroup();
+        if (groupEntity == null || "Y".equals(groupEntity.getDelYn())) {
+            throw new RuntimeException("삭제된 메뉴 옵션 그룹 하위에 있는 메뉴 옵션은 삭제할 수 없습니다.");
+        }
+
+        MenuEntity menuEntity = groupEntity.getMenu();
+        if (menuEntity == null || "Y".equals(menuEntity.getDelYn())) {
+            throw new RuntimeException("삭제된 메뉴 하위에 있는 메뉴 옵션은 삭제할 수 없습니다.");
+        }
+
+        MenuCategoryEntity category = menuEntity.getMenuCategory();
+        if (category == null || "Y".equals(category.getDelYn())) {
+            throw new RuntimeException("삭제된 메뉴 카테고리 하위에 있는 메뉴 옵션은 삭제할 수 없습니다.");
+        }
+
+        StoreEntity store = category.getStore();
+        if (store == null || "Y".equals(store.getDelYn())) {
+            throw new RuntimeException("삭제된 가게 하위에 있는 메뉴 옵션은 삭제할 수 없습니다.");
         }
 
         entity.setDelYn("Y");

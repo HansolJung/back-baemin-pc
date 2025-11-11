@@ -93,7 +93,6 @@ public class StoreApiController {
         return ResponseEntity.ok().body(ApiResponse.ok(resultMap));
     }
 
-
     /**
      * 나의 가게 상세정보 가져오기
      * @param userId 사용자 아이디
