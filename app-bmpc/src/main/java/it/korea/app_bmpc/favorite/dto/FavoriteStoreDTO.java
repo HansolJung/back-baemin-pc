@@ -6,6 +6,7 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
+import it.korea.app_bmpc.common.utils.GeoUtils;
 import it.korea.app_bmpc.common.utils.TimeFormatUtils;
 import it.korea.app_bmpc.favorite.entity.FavoriteStoreEntity;
 import it.korea.app_bmpc.store.dto.StoreFileDTO;
@@ -37,8 +38,9 @@ public class FavoriteStoreDTO {
         private BigDecimal ratingAvg;
         private boolean isOpen;
         private String hourComment;
+        private boolean isAround;
 
-        public static Response of(FavoriteStoreEntity entity) {
+        public static Response of(FavoriteStoreEntity entity, double userLatitude, double userLongitude) {
 
             StoreEntity store = entity.getStore();
 
@@ -85,6 +87,19 @@ public class FavoriteStoreDTO {
                 }
             }
 
+            // 지도 API 오류로 인해 위도/경도 계산이 안됐다면 그냥 찜 목록에 보여지게 하기 위해서 true를 기본값으로 설정
+            boolean isAround = true;
+
+            // 해당 가게가 반경 4km 안에 있는지 계산 (사용자 위도/경도, 가게 위도/경도 값이 모두 정상적으로 있을 경우에만)
+            if (userLatitude > 0 && userLongitude > 0 && 
+                store.getLatitude() != null && store.getLongitude() != null) {
+
+                double distanceKm = 
+                    GeoUtils.distance(userLatitude, userLongitude, store.getLatitude().doubleValue(), store.getLongitude().doubleValue());
+                
+                isAround = distanceKm <= 4.0; // 반경 4km 안에 위치한 가게라면 true
+            }
+
             return Response.builder()
                 .favoriteId(entity.getFavoriteId())
                 .userId(entity.getUser().getUserId())
@@ -97,8 +112,15 @@ public class FavoriteStoreDTO {
                 .ratingAvg(store.getRatingAvg())
                 .isOpen(isOpen)
                 .hourComment(hourComment)
+                .isAround(isAround)
                 .build();
         }
+    }
+
+    @Data
+    public static class Search {
+        @NotBlank(message = "찜 목록을 가져올 때 사용자 주소는 필수값입니다.")
+        private String addr;   // 사용자 주소
     }
 
 

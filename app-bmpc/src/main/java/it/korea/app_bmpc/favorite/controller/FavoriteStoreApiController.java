@@ -43,9 +43,10 @@ public class FavoriteStoreApiController {
     @Operation(summary = "찜 리스트 가져오기")
     public ResponseEntity<?> getFavoriteStoreList(@PageableDefault(page = 0, size = 10, 
             sort = "createDate", direction = Direction.DESC) Pageable pageable,
+            @Valid FavoriteStoreDTO.Search searchDTO,
             @AuthenticationPrincipal UserSecureDTO user) throws Exception {
 
-        Map<String, Object> resultMap = favoriteStoreService.getFavoriteStoreList(pageable, user.getUserId());
+        Map<String, Object> resultMap = favoriteStoreService.getFavoriteStoreList(pageable, searchDTO, user.getUserId());
 
         return ResponseEntity.ok().body(ApiResponse.ok(resultMap));
     }
