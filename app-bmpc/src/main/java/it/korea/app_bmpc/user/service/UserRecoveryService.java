@@ -12,14 +12,25 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class PasswordResetTokenService {
-
+public class UserRecoveryService {
 
     private final UserRepository userRepository;
     private final JWTUtils jwtUtils;
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
 
+    /**
+     * 이메일로 사용자 아이디 발송하기
+     * @param email 이메일
+     */
+    public void sendUserId(String email) {
+
+        UserEntity user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("해당 이메일로 가입된 사용자가 존재하지 않습니다."));
+
+        emailService.sendUserIdEmail(email, user.getUserId());
+    }
+    
     /**
      * 이메일로 비밀번호 재설정 링크 발송하기
      * @param email 이메일
@@ -29,7 +40,7 @@ public class PasswordResetTokenService {
         UserEntity user = userRepository.findById(userId)
             .orElseThrow(()-> new RuntimeException("잘못된 아이디 혹은 이메일입니다."));
 
-        // 가입 했었던 이메일과 요청 이메일이 다를 경우...
+        // 가입했었던 이메일과 요청 이메일이 다를 경우...
         if (!user.getEmail().equals(email)) {
             throw new RuntimeException("잘못된 아이디 혹은 이메일입니다.");
         }
@@ -51,7 +62,7 @@ public class PasswordResetTokenService {
         String email = jwtUtils.validatePasswordResetToken(token);
 
         UserEntity user = userRepository.findByEmail(email)
-            .orElseThrow(() -> new RuntimeException("해당 사용자가 존재하지 않습니다."));
+            .orElseThrow(() -> new RuntimeException("해당 이메일로 가입된 사용자가 존재하지 않습니다."));
 
         user.setPasswd(passwordEncoder.encode(newPassword));
         userRepository.save(user);

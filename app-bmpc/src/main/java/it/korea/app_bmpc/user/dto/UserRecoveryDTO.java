@@ -4,10 +4,16 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 
-public class PasswordRequestDTO {
+public class UserRecoveryDTO {
 
     @Data
-    public static class Forgot {
+    public static class ForgotId {
+        @NotBlank(message = "이메일은 필수 항목입니다.")
+        private String email;
+    }
+
+    @Data
+    public static class ForgotPassword {
         @NotBlank(message = "아이디는 필수 항목입니다.")
         private String userId;
         @NotBlank(message = "이메일은 필수 항목입니다.")
@@ -15,7 +21,7 @@ public class PasswordRequestDTO {
     }
 
     @Data
-    public static class Reset {
+    public static class ResetPassword {
         @NotBlank(message = "비밀번호 재설정 토큰은 필수 항목입니다.")
         private String token;
         @NotBlank(message = "비밀번호는 필수 항목입니다.")
