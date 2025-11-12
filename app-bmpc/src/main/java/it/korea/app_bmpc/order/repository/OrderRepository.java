@@ -60,6 +60,32 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Integer>, Jp
             left join fetch m.file f
             left join fetch i.itemOptionList io
             left join fetch io.menuOption mo
+            where u.userId = :userId
+            and o.orderDate >= :startDate
+            order by o.orderDate desc
+        """,
+        countQuery = """
+            select count(distinct o)
+            from OrderEntity o
+            join o.user u
+            where u.userId = :userId
+            and o.orderDate >= :startDate
+        """
+    )
+    Page<OrderEntity> findRecentOrdersByUser_userId(@Param("userId") String userId, @Param("startDate") LocalDateTime startDate, Pageable pageable);
+
+    // N+1 현상 해결
+    @Query(
+        value = """
+            select distinct o
+            from OrderEntity o
+            join fetch o.store s
+            join fetch o.user u
+            join fetch o.itemList i
+            join fetch i.menu m
+            left join fetch m.file f
+            left join fetch i.itemOptionList io
+            left join fetch io.menuOption mo
             where s.storeId = :storeId
             order by o.orderDate desc
         """,

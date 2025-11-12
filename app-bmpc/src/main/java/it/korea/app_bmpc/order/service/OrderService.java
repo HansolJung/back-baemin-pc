@@ -130,6 +130,28 @@ public class OrderService {
     }
 
     /**
+     * 나의 주문현황 리스트 가져오기 (최근 24시간)
+     * @param pageable 페이징 객체
+     * @param userId 사용자 아이디
+     * @return
+     * @throws Exception
+     */
+    @Transactional(readOnly = true)
+    public Map<String, Object> getMyRecentOrderList(Pageable pageable, String userId) throws Exception {
+        Map<String, Object> resultMap = new HashMap<>();
+
+        LocalDateTime startDate = LocalDateTime.now().minusHours(24); // 24시간 전
+        Page<OrderEntity> pageList = orderRepository.findRecentOrdersByUser_userId(userId, startDate, pageable); // 최근 24시간 내의 주문 내역만 가져오기
+
+        List<OrderDTO.Response> orderList = pageList.getContent().stream().map(OrderDTO.Response::of).toList();
+     
+        resultMap.put("content", orderList);
+        resultMap.put("pageInfo", PageInfo.of(pageList));
+        
+        return resultMap;
+    }
+
+    /**
      * 나의 주문 내역 리스트 가져오기 (with 검색)
      * @param pageable 페이징 객체
      * @param searchDTO 검색 내용

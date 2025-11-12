@@ -56,6 +56,25 @@ public class OrderApiController {
     }
 
     /**
+     * 나의 주문현황 리스트 가져오기 (최근 24시간)
+     * @param pageable 페이징 객체
+     * @param user 로그인한 사용자
+     * @return
+     * @throws Exception
+     */
+    @PreAuthorize("hasRole('USER')") // ROLE_USER 권한이 있어야 접근 가능
+    @GetMapping("/order/recent/my")
+    @Operation(summary = "나의 주문현황 리스트 가져오기")
+    public ResponseEntity<?> getMyRecentOrderList(@PageableDefault(page = 0, size = 10, 
+            sort = "orderDate", direction = Direction.DESC) Pageable pageable,
+            @AuthenticationPrincipal UserSecureDTO user) throws Exception {
+
+        Map<String, Object> resultMap = orderService.getMyRecentOrderList(pageable, user.getUserId());
+
+        return ResponseEntity.ok().body(ApiResponse.ok(resultMap));
+    }
+
+    /**
      * 가게의 주문내역 리스트 가져오기
      * @param pageable 페이징 객체
      * @param storeId 가게 아이디
