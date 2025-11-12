@@ -46,7 +46,7 @@ public class ReviewApiController {
     @GetMapping("/review/store/{storeId}")
     @Operation(summary = "가게의 리뷰 리스트 가져오기")
     public ResponseEntity<?> getStoreReviewList(@PageableDefault(page = 0, size = 10, 
-            sort = "updateDate", direction = Direction.DESC) Pageable pageable,
+            sort = "createDate", direction = Direction.DESC) Pageable pageable,
             @PathVariable(name = "storeId") int storeId) throws Exception {
 
         Map<String, Object> resultMap = reviewService.getStoreReviewList(pageable, storeId);
@@ -64,7 +64,7 @@ public class ReviewApiController {
     @GetMapping("/review/store/my")
     @Operation(summary = "나의 가게의 리뷰 리스트 가져오기")
     public ResponseEntity<?> getOwnerStoreReviewList(@PageableDefault(page = 0, size = 10, 
-            sort = "updateDate", direction = Direction.DESC) Pageable pageable,
+            sort = "createDate", direction = Direction.DESC) Pageable pageable,
             @AuthenticationPrincipal UserSecureDTO user) throws Exception {
 
         Map<String, Object> resultMap = reviewService.getOwnerStoreReviewList(pageable, user.getUserId());
@@ -83,7 +83,7 @@ public class ReviewApiController {
     @GetMapping("/review")
     @Operation(summary = "내가 작성한 리뷰 리스트 가져오기")
     public ResponseEntity<?> getUserReviewList(@PageableDefault(page = 0, size = 10, 
-            sort = "updateDate", direction = Direction.DESC) Pageable pageable,
+            sort = "createDate", direction = Direction.DESC) Pageable pageable,
             @AuthenticationPrincipal UserSecureDTO user) throws Exception {
         
         Map<String, Object> resultMap = reviewService.getUserReviewList(pageable, user.getUserId());

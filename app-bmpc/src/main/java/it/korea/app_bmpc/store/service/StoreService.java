@@ -27,6 +27,10 @@ import it.korea.app_bmpc.kakao.dto.KakaoAddressResponseDTO;
 import it.korea.app_bmpc.kakao.service.KakaoAddressService;
 import it.korea.app_bmpc.order.entity.OrderEntity;
 import it.korea.app_bmpc.order.repository.OrderRepository;
+import it.korea.app_bmpc.popular.entity.PopularKeywordEntity;
+import it.korea.app_bmpc.popular.entity.SearchLogEntity;
+import it.korea.app_bmpc.popular.repository.PopularKeywordRepository;
+import it.korea.app_bmpc.popular.repository.SearchLogRepository;
 import it.korea.app_bmpc.store.dto.CategoryDTO;
 import it.korea.app_bmpc.store.dto.StoreDTO;
 import it.korea.app_bmpc.store.dto.StoreFileDTO;
@@ -55,6 +59,8 @@ public class StoreService {
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
     private final OrderRepository orderRepository;
+    private final SearchLogRepository searchLogRepository;
+    private final PopularKeywordRepository popularKeywordRepository;
     private final KakaoAddressService kakaoAddressService;
     private final FileUtils fileUtils;
 
@@ -75,7 +81,7 @@ public class StoreService {
      * @return
      * @throws Exception
      */
-    @Transactional(readOnly = true)
+    @Transactional
     public Map<String, Object> getStoreList(Pageable pageable, StoreSearchDTO searchDTO) throws Exception {
         Map<String, Object> resultMap = new HashMap<>();
 
@@ -113,9 +119,26 @@ public class StoreService {
         resultMap.put("pageInfo", PageInfo.of(pageList));
 
         // 검색어가 존재하고, 검색 결과가 있을 경우에만 검색 로그 테이블에 저장
-        // if (StringUtils.isNotBlank(searchDTO.getSearchText()) && !storeList.isEmpty()) {
-            
-        // }
+        if (StringUtils.isNotBlank(searchDTO.getSearchText()) && !storeList.isEmpty()) {
+            String keyword = searchDTO.getSearchText().trim();
+
+            SearchLogEntity searchLog = new SearchLogEntity();
+            searchLog.setSearchText(keyword);
+
+            searchLogRepository.save(searchLog);
+
+            // 만약 해당 키워드로 인기 검색어 요약이 존재했다면 단순히 searchCount만 증가시키고, 없었다면 새로 등록한다.
+            popularKeywordRepository.findByKeyword(keyword)
+                .ifPresentOrElse(PopularKeywordEntity::incrementSearchCount,
+                    ()-> {
+                        PopularKeywordEntity popularKeyword = new PopularKeywordEntity();
+                        popularKeyword.setKeyword(keyword);
+                        popularKeyword.setSearchCount(1);
+                        popularKeyword.setLastSearchDate(LocalDateTime.now());
+
+                        popularKeywordRepository.save(popularKeyword);
+                    });
+        }
         
         return resultMap;
     }
