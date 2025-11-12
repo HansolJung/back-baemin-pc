@@ -7,6 +7,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
+import it.korea.app_bmpc.common.utils.MaskingUtils;
 import it.korea.app_bmpc.order.dto.OrderDTO;
 import it.korea.app_bmpc.order.dto.OrderSummaryDTO;
 import it.korea.app_bmpc.review.entity.ReviewEntity;
@@ -41,7 +42,7 @@ public class ReviewDTO {
         private List<ReviewFileDTO> fileList;
         private ReviewReplyDTO.Response reply;
         
-        public static Response of(ReviewEntity entity) {
+        public static Response of(ReviewEntity entity, boolean isMasked) {
 
             // 파일 엔티티를 파일 DTO 로 객체 변환
             // 바로 이때 파일 리스트가 SELECT 된다.
@@ -57,6 +58,10 @@ public class ReviewDTO {
             // 주문 엔티티를 주문 정보 요약 DTO 로 객체 변환
             OrderSummaryDTO orderSummary = OrderSummaryDTO.of(entity.getOrder());
 
+            // 만약 마스킹 처리를 원하면 마스킹 처리를 해서 사용자 아이디 리턴, 아니라면 사용자 아이디 그대로 리턴
+            String userId = entity.getUser().getUserId();
+            String writer = isMasked ? MaskingUtils.maskingUserId(userId) : userId;
+
             return Response.builder()
                 .reviewId(entity.getReviewId())
                 .rating(entity.getRating())
@@ -64,7 +69,7 @@ public class ReviewDTO {
                 .delYn(entity.getDelYn())
                 .createDate(entity.getCreateDate())
                 .updateDate(entity.getUpdateDate())
-                .writer(entity.getUser().getUserId())
+                .writer(writer)
                 .order(orderSummary)
                 .fileList(fileList)
                 .reply(reply)
@@ -106,6 +111,8 @@ public class ReviewDTO {
             // 주문 엔티티를 주문 DTO 로 객체 변환
             OrderDTO.Response order = OrderDTO.Response.of(entity.getOrder());
 
+            String userId = entity.getUser().getUserId();
+            
             return DetailResponse.builder()
                 .reviewId(entity.getReviewId())
                 .rating(entity.getRating())
@@ -113,7 +120,7 @@ public class ReviewDTO {
                 .delYn(entity.getDelYn())
                 .createDate(entity.getCreateDate())
                 .updateDate(entity.getUpdateDate())
-                .writer(entity.getUser().getUserId())
+                .writer(MaskingUtils.maskingUserId(userId))
                 .order(order)
                 .fileList(fileList)
                 .reply(reply)

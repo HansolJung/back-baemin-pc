@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -110,6 +111,11 @@ public class StoreService {
 
         resultMap.put("content", storeList);
         resultMap.put("pageInfo", PageInfo.of(pageList));
+
+        // 검색어가 존재하고, 검색 결과가 있을 경우에만 검색 로그 테이블에 저장
+        // if (StringUtils.isNotBlank(searchDTO.getSearchText()) && !storeList.isEmpty()) {
+            
+        // }
         
         return resultMap;
     }

@@ -60,10 +60,9 @@ public class ReviewService {
     public Map<String, Object> getStoreReviewList(Pageable pageable, int storeId) throws Exception {
         Map<String, Object> resultMap = new HashMap<>();
 
-        //Page<ReviewEntity> pageList = reviewRepository.findAllByStore_storeIdAndDelYn(storeId, "N", pageable);
         Page<ReviewEntity> pageList = reviewRepository.findAllByStoreId(storeId, "N", pageable);
 
-        List<ReviewDTO.Response> reviewList = pageList.getContent().stream().map(ReviewDTO.Response::of).toList();
+        List<ReviewDTO.Response> reviewList = pageList.getContent().stream().map(r -> ReviewDTO.Response.of(r, true)).toList();
 
         resultMap.put("content", reviewList);
         resultMap.put("pageInfo", PageInfo.of(pageList));
@@ -202,7 +201,7 @@ public class ReviewService {
         reviewEntity.setRating(request.getRating());
         reviewEntity.setContent(request.getContent());
 
-        ReviewDTO.Response response = ReviewDTO.Response.of(reviewEntity);
+        ReviewDTO.Response response = ReviewDTO.Response.of(reviewEntity, false);
 
         // 이미지 수정
         List<ReviewDTO.InnerRequest> imageList = request.getImageList();
@@ -471,7 +470,7 @@ public class ReviewService {
         ReviewSearchSpecification searchSpecification = new ReviewSearchSpecification(searchDTO);
         pageList = reviewRepository.findAll(searchSpecification, pageable);
 
-        List<ReviewDTO.Response> reviewList = pageList.getContent().stream().map(ReviewDTO.Response::of).toList();
+        List<ReviewDTO.Response> reviewList = pageList.getContent().stream().map(r -> ReviewDTO.Response.of(r, false)).toList();
 
         resultMap.put("content", reviewList);
         resultMap.put("pageInfo", PageInfo.of(pageList));
