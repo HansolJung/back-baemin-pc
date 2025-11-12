@@ -27,6 +27,7 @@ import it.korea.app_bmpc.order.entity.OrderItemOptionEntity;
 import it.korea.app_bmpc.order.event.OrderStatusChangedEvent;
 import it.korea.app_bmpc.order.repository.OrderRepository;
 import it.korea.app_bmpc.order.repository.OrderSearchSpecification;
+import it.korea.app_bmpc.review.repository.ReviewRepository;
 import it.korea.app_bmpc.store.entity.StoreEntity;
 import it.korea.app_bmpc.user.entity.UserEntity;
 import it.korea.app_bmpc.user.repository.UserRepository;
@@ -42,6 +43,7 @@ public class OrderService {
     private final UserRepository userRepository;
     private final MenuRepository menuRepository;
     private final MenuOptionRepository menuOptionRepository;
+    private final ReviewRepository reviewRepository;
     private final ApplicationEventPublisher eventPublisher;
 
     /**
@@ -101,7 +103,25 @@ public class OrderService {
 
         Page<OrderEntity> pageList = orderRepository.findAllByUser_userId(userId, pageable);
 
-        List<OrderDTO.Response> orderList = pageList.getContent().stream().map(OrderDTO.Response::of).toList();
+        // 주문 아이디 리스트
+        List<Integer> orderIdList = pageList.getContent().stream().map(OrderEntity::getOrderId).toList();
+
+        // 리뷰가 존재하는 주문 아이디 리스트
+        List<Integer> reviewedOrderIdList = reviewRepository.findAllByOrder_orderIdIn(orderIdList).stream()
+            .map(review -> review.getOrder().getOrderId()).toList();
+
+        // 리뷰 존재 여부에 따라서 DTO로 변환할 때 isReviewed 값을 true 또는 false 로 저장하기
+        List<OrderDTO.Response> orderList = pageList.getContent().stream()
+            .map(entity -> {
+                OrderDTO.Response dto = OrderDTO.Response.of(entity);
+
+                // toBuilder 를 사용해서 isReviewed 필드의 값만 추가로 변경하기
+                dto = dto.toBuilder()
+                    .isReviewed(reviewedOrderIdList.contains(entity.getOrderId()))
+                    .build();
+
+                return dto;
+            }).toList();
 
         resultMap.put("content", orderList);
         resultMap.put("pageInfo", PageInfo.of(pageList));

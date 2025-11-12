@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 
 public class OrderDTO {
 
-    @Builder
+    @Builder(toBuilder = true)
     @AllArgsConstructor
     @NoArgsConstructor
     @Getter
@@ -34,6 +34,7 @@ public class OrderDTO {
         private int storeId;
         private String storeName;
         private List<OrderItemSummaryDTO> itemList;
+        private boolean isReviewed;
      
         public static Response of(OrderEntity entity) {
             

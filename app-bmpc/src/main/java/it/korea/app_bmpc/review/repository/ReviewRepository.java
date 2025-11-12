@@ -1,5 +1,7 @@
 package it.korea.app_bmpc.review.repository;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -58,4 +60,6 @@ public interface ReviewRepository extends JpaRepository<ReviewEntity, Integer>, 
     Double findRatingAvgByStoreId(@Param("storeId") int storeId);
 
     Long countByStore_storeIdAndDelYn(int storeId, String delYn);
+
+    List<ReviewEntity> findAllByOrder_orderIdIn(List<Integer> orderIdList);
 }

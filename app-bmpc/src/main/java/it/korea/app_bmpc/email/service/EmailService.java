@@ -16,6 +16,11 @@ public class EmailService {
 
     private final JavaMailSender javaMailSender;
 
+    /**
+     * 비밀번호 재설정 링크 이메일로 발송하기
+     * @param email 이메일 주소
+     * @param token 비밀번호 재설정 토큰
+     */
     @Async
     public void sendPasswordResetEmail(String email, String token) {
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
