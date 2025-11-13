@@ -16,6 +16,7 @@ import it.korea.app_bmpc.order.entity.OrderEntity;
 import it.korea.app_bmpc.order.event.ReviewRecommendEvent;
 import it.korea.app_bmpc.order.repository.OrderRepository;
 import it.korea.app_bmpc.order.service.OrderSseService;
+import it.korea.app_bmpc.review.repository.ReviewRepository;
 import it.korea.app_bmpc.user.entity.UserEntity;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ReviewRecommendScheduler {
 
     private final OrderRepository orderRepository;
+    private final ReviewRepository reviewRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final OrderSseService orderSseService;
 
@@ -38,7 +40,7 @@ public class ReviewRecommendScheduler {
     private final ReentrantLock lock = new ReentrantLock();
 
     // 이미 리뷰 요청을 보낸 주문의 아이디를 저장하는 Set
-    private final Set<Integer> orderIdList = ConcurrentHashMap.newKeySet();
+    private final Set<Integer> orderIdSet = ConcurrentHashMap.newKeySet();
 
     /**
      * 배달완료 후 1시간 지난 주문자에게 리뷰 요청 SSE 전송하기
@@ -64,11 +66,20 @@ public class ReviewRecommendScheduler {
 
             List<OrderEntity> orderEntityList = orderRepository.findByStatusAndOrderDateBetween("배달완료", startTime, endTime);
 
+            // 배딜완료된 주문이 없으면 바로 return
+            if (orderEntityList.isEmpty()) {
+                log.info("리뷰 요청 스케줄러 종료. 배달완료된 주문이 없음.");
+                return;
+            }
+
+            // 리뷰가 존재하는 주문(배달완료된) 아이디 리스트
+            List<Integer> reviewedOrderIdList = reviewRepository.findReviewedOrderIdList(orderEntityList);
+
             for (OrderEntity orderEntity : orderEntityList) {
                 int orderId = orderEntity.getOrderId();
 
-                // 이미 리뷰 요청을 보낸 주문은 건너뛰기
-                if (orderIdList.contains(orderId)) {
+                // 이미 리뷰가 작성된 주문이거나, 이미 리뷰 요청을 보낸 주문은 건너뛰기
+                if (reviewedOrderIdList.contains(orderId) || orderIdSet.contains(orderId)) {
                     continue;
                 }
 
@@ -82,7 +93,7 @@ public class ReviewRecommendScheduler {
                             count++;
 
                             // SSE 발송을 완료한 주문의 아이디는 맵에 저장
-                            orderIdList.add(orderId);
+                            orderIdSet.add(orderId);
                         } else {
                             log.info("SSE 미연결 상태 - 사용자 아이디: {}", userEntity.getUserId());
                         }
@@ -99,7 +110,7 @@ public class ReviewRecommendScheduler {
                 List<OrderEntity> oldOrderEntityList = orderRepository.findByStatusAndOrderDateBefore("배달완료", startTime);
                 Set<Integer> oldOrderIdList = oldOrderEntityList.stream().map(OrderEntity::getOrderId).collect(Collectors.toSet());
 
-                orderIdList.removeAll(oldOrderIdList);
+                orderIdSet.removeAll(oldOrderIdList);
             } catch (Exception e) {
                 log.warn("2시간 이상 지난 주문의 아이디 정보를 Set에서 정리 중 오류 발생", e);
             }

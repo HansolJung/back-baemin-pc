@@ -49,7 +49,7 @@ public class OrderCancelScheduler {
             log.info("주문 자동취소 스케줄러 시작");
 
             // LocalDateTime time = LocalDateTime.now().minusMinutes(5);
-            // List<OrderEntity> orderEntityList  = orderRepository.findByStatusAndOrderDateBefore("주문완료", time);
+            // List<OrderEntity> orderEntityList = orderRepository.findByStatusAndOrderDateBefore("주문완료", time);
 
             // for (OrderEntity orderEntity : orderEntityList) {
             //     try {

@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import it.korea.app_bmpc.order.entity.OrderEntity;
 import it.korea.app_bmpc.review.entity.ReviewEntity;
 
 public interface ReviewRepository extends JpaRepository<ReviewEntity, Integer>, JpaSpecificationExecutor<ReviewEntity> {
@@ -58,4 +59,7 @@ public interface ReviewRepository extends JpaRepository<ReviewEntity, Integer>, 
     Long countByStore_storeIdAndDelYn(int storeId, String delYn);
 
     List<ReviewEntity> findAllByOrder_orderIdIn(List<Integer> orderIdList);
+
+    @Query("select r.order.orderId from ReviewEntity r where r.order in :orderList")
+    List<Integer> findReviewedOrderIdList(@Param("orderList") List<OrderEntity> orderList);
 }

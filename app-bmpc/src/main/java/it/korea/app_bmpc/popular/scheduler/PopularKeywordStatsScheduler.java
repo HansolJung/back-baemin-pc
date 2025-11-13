@@ -34,8 +34,6 @@ public class PopularKeywordStatsScheduler {
     private final PopularKeywordStatsRepository popularKeywordStatsRepository;
     private final SearchLogRepository searchLogRepository;
 
-    private static final int TOP_N = 10;
-
     @Scheduled(cron = "0 0 1 * * *") // 매일 새벽 1시
     @Transactional
     public void createDailyPopularKeywordStats() {
@@ -44,52 +42,50 @@ public class PopularKeywordStatsScheduler {
         LocalDateTime startOfYesterday = yesterday.atStartOfDay();
         LocalDateTime startOfToday = yesterday.plusDays(1).atStartOfDay();
 
-        // 어제 하루 검색량 집계
+        // 어제 하루 검색 횟수 집계하기
         List<Object[]> dailyCounts = searchLogRepository.getSearchTextWithCount(startOfYesterday, startOfToday);
 
-        // Map<keyword, dailyCount>
-        Map<String, Integer> dailyCountMap = dailyCounts.stream()
-                .collect(Collectors.toMap(
-                        row -> (String) row[0],
-                        row -> ((Long) row[1]).intValue()
-                ));
+        // <검색어, 검색 횟수>로 Map 만들기
+        Map<String, Integer> dailyCountMap = 
+            dailyCounts.stream().collect(Collectors.toMap(row -> (String) row[0], row -> ((Long) row[1]).intValue()));
 
         // 모든 popular_keyword 가져오기
         List<PopularKeywordEntity> popularKeywordList = popularKeywordRepository.findAll();
 
-        // 점수 계산: 누적 검색량 + 최근성 부스트
-        List<KeywordScore> scoredKeywords = popularKeywordList.stream()
-                .map(keyword -> {
-                    int dailyCount = dailyCountMap.getOrDefault(keyword.getKeyword(), 0);
-                    double score = keyword.getSearchCount() * 0.7 + dailyCount * 0.3; // 하루치 검색량으로 가중치
-                    return new KeywordScore(keyword, score, dailyCount);
-                })
-                .sorted(Comparator.comparingDouble(KeywordScore::getScore).reversed())
-                .limit(TOP_N)
-                .toList();
+        // 점수 계산하기
+        List<KeywordScore> keywordScoreList = popularKeywordList.stream()
+            .map(keyword -> {
+                int dailyCount = dailyCountMap.getOrDefault(keyword.getKeyword(), 0);
+                double score = keyword.getSearchCount() * 0.7 + dailyCount * 0.3; // '기존 검색 횟수 + 어제 하루 검색 횟수'로 적절하게 가중치 부여해서 점수 계산
+
+                return new KeywordScore(keyword, score, dailyCount);
+            })
+            .sorted(Comparator.comparingDouble(KeywordScore::getScore).reversed())
+            .limit(10)
+            .toList();
 
         // 이전날 순위 조회
         Map<String, Integer> prevRankMap = popularKeywordStatsRepository
-                .findByStatDate(yesterday.minusDays(1))
-                .stream()
-                .collect(Collectors.toMap(
-                        PopularKeywordStatsEntity::getKeyword,
-                        PopularKeywordStatsEntity::getRank
-                ));
+            .findByStatDate(yesterday.minusDays(1))
+            .stream()
+            .collect(Collectors.toMap(
+                    PopularKeywordStatsEntity::getKeyword,
+                    PopularKeywordStatsEntity::getRank
+            ));
 
-        // top 10 stats 저장
+        // 인기검색어 TOP 10 통계 생성
         int rank = 1;
-        for (KeywordScore ks : scoredKeywords) {
-            PopularKeywordEntity keywordEntity = ks.getKeywordEntity();
+        for (KeywordScore keywordScore : keywordScoreList) {
+            PopularKeywordEntity keywordEntity = keywordScore.getKeywordEntity();
             String keyword = keywordEntity.getKeyword();
 
             Integer prevRank = prevRankMap.get(keyword);
-            Integer rankDiff = (prevRank != null) ? prevRank - rank : null; // 신규 키워드 null
+            Integer rankDiff = (prevRank != null) ? prevRank - rank : null; // 새로 등장한 검색어의 순위는 null로 들어가게 됨
 
             PopularKeywordStatsEntity statsEntity = new PopularKeywordStatsEntity();
             statsEntity.setKeyword(keyword);
             statsEntity.setStatDate(yesterday);
-            statsEntity.setDailyCount(ks.getDailyCount()); // 어제 하루치 검색량
+            statsEntity.setDailyCount(keywordScore.getDailyCount()); // 어제 하루치 검색량
             statsEntity.setTotalCount(keywordEntity.getSearchCount());
             statsEntity.setRank(rank);
             statsEntity.setPrevRank(prevRank);
@@ -99,7 +95,7 @@ public class PopularKeywordStatsScheduler {
             rank++;
         }
 
-        log.info("PopularKeywordStatsScheduler 완료: {}건 저장", scoredKeywords.size());
+        log.info("PopularKeywordStatsScheduler 완료: {}건 저장", keywordScoreList.size());
     }
 
     @Getter

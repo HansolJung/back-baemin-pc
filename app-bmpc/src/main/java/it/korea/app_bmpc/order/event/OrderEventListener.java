@@ -1,5 +1,6 @@
 package it.korea.app_bmpc.order.event;
 
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -28,7 +29,6 @@ public class OrderEventListener {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleOrderCreatedEvent(OrderCreatedEvent event) {
         try {
-            
             OrderEntity orderEntity = orderRepository.findById(event.getOrderId())
                 .orElseThrow(() -> new RuntimeException("해당 주문 정보를 찾을 수 없습니다."));
 
@@ -48,7 +48,6 @@ public class OrderEventListener {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleOrderStatusChangedEvent(OrderStatusChangedEvent event) {
         try {
-            //log.info(event.getMessage());
             orderSseService.sendEvent(event.getUserId(), event.getMessage());
 
             log.info("주문자 {}에게 SSE 발송 완료", event.getUserId());
@@ -60,10 +59,10 @@ public class OrderEventListener {
     /**
      * 리뷰 요청 트랜잭션이 끝난 후 주문자에게 SSE 발송 
      */
+    @Async("reviewRecommendExecutor") // AsyncConfig 클래스에서 설정한 비동기 스레드풀 사용
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleReviewRecommendEvent(ReviewRecommendEvent event) {
         try {
-            //log.info(event.getMessage());
             orderSseService.sendEvent(event.getUserId(), event.getMessage());
 
             log.info("주문자 {}에게 SSE 발송 완료", event.getUserId());
