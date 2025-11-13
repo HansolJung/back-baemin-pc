@@ -11,7 +11,6 @@ import it.korea.app_bmpc.popular.entity.SearchLogEntity;
 
 public interface SearchLogRepository extends JpaRepository<SearchLogEntity, Integer> {
 
-
     @Query("""
             select s.searchText, count(s)
             from SearchLogEntity s

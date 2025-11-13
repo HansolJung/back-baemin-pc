@@ -17,9 +17,6 @@ public class MaskingUtils {
         String visibleStr = userId.substring(0, length);
         String maskedStr = "*".repeat(userId.length() - length);
 
-        System.out.println("테스트!");
-        System.out.println(visibleStr + maskedStr);
-
         return visibleStr + maskedStr;
     }
 }

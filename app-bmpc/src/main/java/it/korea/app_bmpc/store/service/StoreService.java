@@ -119,7 +119,7 @@ public class StoreService {
         resultMap.put("pageInfo", PageInfo.of(pageList));
 
         // 검색어가 존재하고, 검색 결과가 있을 경우에만 검색 로그 테이블에 저장
-        if (StringUtils.isNotBlank(searchDTO.getSearchText()) && !storeList.isEmpty()) {
+        if (StringUtils.isNotBlank(searchDTO.getSearchText()) && searchDTO.getSearchText().trim().length() >= 2 && !storeList.isEmpty()) {
             String keyword = searchDTO.getSearchText().trim();
 
             SearchLogEntity searchLog = new SearchLogEntity();
