@@ -31,6 +31,7 @@ public class FavoriteStoreDTO {
         private String userId;
         private int storeId;
         private String storeName;
+        private String addr;
         private String fileName;
         private String storedName;
         private String filePath;
@@ -105,6 +106,7 @@ public class FavoriteStoreDTO {
                 .userId(entity.getUser().getUserId())
                 .storeId(store.getStoreId())
                 .storeName(store.getStoreName())
+                .addr(store.getAddr())
                 .fileName(mainImage != null ? mainImage.getFileName() : null)
                 .storedName(mainImage != null ? mainImage.getStoredName() : null)
                 .filePath(mainImage != null ? mainImage.getFilePath() : null)
