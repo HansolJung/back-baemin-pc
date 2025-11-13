@@ -144,6 +144,9 @@ public class ReviewDTO {
 
         // 이미지
         private List<@Valid InnerRequest> imageList;
+
+        // 유지시킬 기존 파일 아이디 리스트
+        private List<Integer> keepImageList;
     }
 
     @Data

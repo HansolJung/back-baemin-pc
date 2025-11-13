@@ -3,6 +3,8 @@ package it.korea.app_bmpc.review.service;
 import java.io.File;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,7 +22,6 @@ import it.korea.app_bmpc.config.WebConfig;
 import it.korea.app_bmpc.order.entity.OrderEntity;
 import it.korea.app_bmpc.order.repository.OrderRepository;
 import it.korea.app_bmpc.review.dto.ReviewDTO;
-import it.korea.app_bmpc.review.dto.ReviewFileDTO;
 import it.korea.app_bmpc.review.dto.ReviewReplyDTO;
 import it.korea.app_bmpc.review.entity.ReviewEntity;
 import it.korea.app_bmpc.review.entity.ReviewFileEntity;
@@ -201,15 +202,35 @@ public class ReviewService {
         reviewEntity.setRating(request.getRating());
         reviewEntity.setContent(request.getContent());
 
-        ReviewDTO.Response response = ReviewDTO.Response.of(reviewEntity, false);
+        // 유지할 이미지 아이디 목록
+        List<Integer> keepImageList = request.getKeepImageList();
 
-        // 이미지 수정
+        // 삭제할 이미지 리스트
+        List<ReviewFileEntity> deleteImageList = new ArrayList<>();
+
+        for (ReviewFileEntity reviewfileEntity : new ArrayList<>(reviewEntity.getFileList())) {
+
+            // 유지할 이미지 목록에 없는 이미지는 삭제 대상이기 때문에 삭제
+            if (keepImageList == null || !keepImageList.contains(reviewfileEntity.getRfId())) {
+                deleteImageList.add(reviewfileEntity);
+                reviewEntity.getFileList().remove(reviewfileEntity);
+            }
+        }
+
+        // 남은 이미지들 재정렬해서 displayOrder 재설정
+        List<ReviewFileEntity> remainingImageList = new ArrayList<>(reviewEntity.getFileList());
+
+        if (!remainingImageList.isEmpty()) {
+            remainingImageList.sort(Comparator.comparingInt(ReviewFileEntity::getDisplayOrder));
+            int displayOrder = 1;
+            for (ReviewFileEntity file : remainingImageList) {
+                file.setDisplayOrder(displayOrder++);
+            }
+        }
+
+        // 이미지 추가
         List<ReviewDTO.InnerRequest> imageList = request.getImageList();
         if (imageList != null && !imageList.isEmpty()) {
-
-            // 기존 파일 제거
-            reviewEntity.getFileList().clear();
-
             for (ReviewDTO.InnerRequest innerRequest : imageList) {
                 MultipartFile image = innerRequest.getImage();
                 if (image != null && !image.isEmpty()) {
@@ -233,24 +254,9 @@ public class ReviewService {
         // 가게 평균 평점 및 리뷰 수 업데이트
         updateStoreRatingAvg(reviewEntity);
 
-        // 기존 리뷰 파일 제거
-        if (imageList != null && !imageList.isEmpty()) {
-
-            // 기존 파일 삭제 (작업 도중 DB에 문제가 생길 수도 있기 때문에 물리적 파일 삭제는 제일 마지막에 진행)
-            // 리뷰 정보 DTO 가 가지고 있는 파일 정보로 삭제
-            for (ReviewDTO.InnerRequest innerRequest : imageList) {
-                MultipartFile image = innerRequest.getImage();
-                if (image != null && !image.isEmpty()) {
-                    if (response.getFileList() != null && response.getFileList().size() > 0) {
-                        for (ReviewFileDTO fileDTO : response.getFileList()) {
-                            deleteImageFiles(fileDTO.getFilePath(), 
-                                fileDTO.getStoredName(), fileDTO.getFileThumbName());
-                        }
-
-                        break;
-                    }
-                }
-            }   
+        // 실제 이미지 파일 제거
+        for (ReviewFileEntity deleteFile : deleteImageList) {
+            deleteImageFiles(deleteFile.getFilePath(), deleteFile.getStoredName(), deleteFile.getFileThumbName());
         }
     }
 
