@@ -27,8 +27,6 @@ public class AdminUserRequestDTO {
     @NotBlank(message = "이메일은 필수 항목입니다.")
     @Email(message = "유효한 이메일 형식이 아닙니다.")
     private String email;
-    @NotBlank(message = "사용여부는 필수 항목입니다.")
-    private String useYn;
     private int deposit;
     private int balance;
     private String businessNo;

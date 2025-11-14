@@ -40,11 +40,13 @@ public class AdminUserDTO {
     private int balance;
     private String businessNo;
     private Integer storeId;
+    private String storeName;
 
     public static AdminUserDTO of(UserEntity entity) {
 
         StoreEntity storeEntity = entity.getStore();
         Integer storeId = storeEntity != null ? storeEntity.getStoreId() : null;
+        String storeName = storeEntity != null ? storeEntity.getStoreName() : null;
 
         return AdminUserDTO.builder()
             .userId(entity.getUserId())
@@ -63,6 +65,7 @@ public class AdminUserDTO {
             .balance(entity.getBalance())
             .businessNo(entity.getBusinessNo())
             .storeId(storeId)
+            .storeName(storeName)
             .build();
     }
 

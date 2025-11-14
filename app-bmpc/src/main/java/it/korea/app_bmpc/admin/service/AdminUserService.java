@@ -111,7 +111,7 @@ public class AdminUserService {
             userEntity.setGender(userRequestDTO.getGender());
             userEntity.setPhone(userRequestDTO.getPhone());
             userEntity.setEmail(userRequestDTO.getEmail());
-            userEntity.setUseYn(userRequestDTO.getUseYn());
+            userEntity.setUseYn("Y");
             userEntity.setDelYn(userRequestDTO.getDelYn());
             userEntity.setDeposit(0);
             userEntity.setBalance(0);
@@ -140,10 +140,7 @@ public class AdminUserService {
      */
     @Transactional
     public void updateUser(AdminUserUpdateRequestDTO userRequestDTO) throws Exception {
-
-        UserRoleEntity userRoleEntity = userRoleRepository.findById(userRequestDTO.getUserRole())
-            .orElseThrow(() -> new RuntimeException("해당 권한이 존재하지 않습니다."));
-
+        
         UserEntity userEntity = userRepository.findById(userRequestDTO.getUserId())
             .orElseThrow(() -> new RuntimeException("해당 사용자가 존재하지 않습니다."));
 
@@ -156,11 +153,10 @@ public class AdminUserService {
             userEntity.setPasswd(passwordEncoder.encode(userRequestDTO.getPasswd()));
         }
 
-        userEntity.setUseYn(userRequestDTO.getUseYn());
-        userEntity.setRole(userRoleEntity);
+        userEntity.setUseYn("Y");
 
         // 점주일 때만 사업자번호 설정
-        if ("OWNER".equals(userRoleEntity.getRoleId())) {
+        if ("OWNER".equals(userEntity.getRole().getRoleId())) {
             userEntity.setBusinessNo(userRequestDTO.getBusinessNo());
         } else {
             userEntity.setBusinessNo(null);

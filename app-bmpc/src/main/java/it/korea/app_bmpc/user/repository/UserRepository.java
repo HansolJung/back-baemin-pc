@@ -23,9 +23,6 @@ public interface UserRepository extends JpaRepository<UserEntity, String>, JpaSp
     @EntityGraph(attributePaths = {"role"})   // 전체 유저 리스트 가져올 때 N+1 현상 해결
     Page<UserEntity> findAll(Specification<UserEntity> searchSpecification, Pageable pageable);
 
-    // Page<UserEntity> findByUserIdContainingOrUserNameContaining(String searchText1, 
-    //     String searchText2, Pageable pageable);    // 통합 검색할 때 사용
-
     @Query(value = """
             select u.user_id,
                 u.user_name,

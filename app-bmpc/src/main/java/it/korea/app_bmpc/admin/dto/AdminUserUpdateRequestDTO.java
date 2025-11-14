@@ -9,8 +9,6 @@ public class AdminUserUpdateRequestDTO {
     @NotBlank(message = "아이디는 필수 항목입니다.")
     private String userId;
     private String passwd;
-    @NotBlank(message = "권한은 필수 항목입니다.")
-    private String userRole;
     @NotBlank(message = "이름은 필수 항목입니다.")
     private String userName;
     @NotBlank(message = "생년월일은 필수 항목입니다.")
@@ -21,8 +19,6 @@ public class AdminUserUpdateRequestDTO {
     private String phone;
     @NotBlank(message = "이메일은 필수 항목입니다.")
     private String email;
-    @NotBlank(message = "사용여부는 필수 항목입니다.")
-    private String useYn;
 
     private String businessNo;
 
