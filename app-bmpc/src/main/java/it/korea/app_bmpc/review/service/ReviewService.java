@@ -54,16 +54,17 @@ public class ReviewService {
      * 가게의 리뷰 리스트 가져오기
      * @param pageable 페이징 객체
      * @param storeId 가게 아이디
+     * @param isAdmin 어드민 권한 여부
      * @return
      * @throws Exception
      */
     @Transactional(readOnly = true)
-    public Map<String, Object> getStoreReviewList(Pageable pageable, int storeId) throws Exception {
+    public Map<String, Object> getStoreReviewList(Pageable pageable, int storeId, boolean isAdmin) throws Exception {
         Map<String, Object> resultMap = new HashMap<>();
 
         Page<ReviewEntity> pageList = reviewRepository.findAllByStoreId(storeId, "N", pageable);
 
-        List<ReviewDTO.Response> reviewList = pageList.getContent().stream().map(r -> ReviewDTO.Response.of(r, true)).toList();
+        List<ReviewDTO.Response> reviewList = pageList.getContent().stream().map(r -> ReviewDTO.Response.of(r, !isAdmin)).toList();   // ADMIN 권한이면 마스킹 처리 안함
 
         resultMap.put("content", reviewList);
         resultMap.put("pageInfo", PageInfo.of(pageList));

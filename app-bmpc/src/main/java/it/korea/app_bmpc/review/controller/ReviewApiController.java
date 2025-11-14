@@ -40,6 +40,7 @@ public class ReviewApiController {
      * 가게의 리뷰 리스트 가져오기
      * @param pageable 페이징 객체
      * @param storeId 가게 아이디
+     * @param user 로그인한 사용자
      * @return
      * @throws Exception
      */
@@ -47,9 +48,13 @@ public class ReviewApiController {
     @Operation(summary = "가게의 리뷰 리스트 가져오기")
     public ResponseEntity<?> getStoreReviewList(@PageableDefault(page = 0, size = 10, 
             sort = "createDate", direction = Direction.DESC) Pageable pageable,
-            @PathVariable(name = "storeId") int storeId) throws Exception {
+            @PathVariable(name = "storeId") int storeId,
+            @AuthenticationPrincipal UserSecureDTO user) throws Exception {
+        
+        boolean isAdmin = user != null && user.getAuthorities().stream()
+            .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
 
-        Map<String, Object> resultMap = reviewService.getStoreReviewList(pageable, storeId);
+        Map<String, Object> resultMap = reviewService.getStoreReviewList(pageable, storeId, isAdmin);
 
         return ResponseEntity.ok().body(ApiResponse.ok(resultMap));
     }
@@ -57,6 +62,7 @@ public class ReviewApiController {
     /**
      * 나의 가게의 리뷰 리스트 가져오기
      * @param pageable 페이징 객체
+     * @param user 로그인한 사용자
      * @return
      * @throws Exception
      */

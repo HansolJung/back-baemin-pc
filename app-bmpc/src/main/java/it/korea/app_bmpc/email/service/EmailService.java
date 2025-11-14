@@ -1,5 +1,6 @@
 package it.korea.app_bmpc.email.service;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
@@ -13,6 +14,9 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 public class EmailService {
+
+    @Value("${front-end.url}")
+    private String frontendUrl;  // 프론트엔드 주소
 
     private final JavaMailSender javaMailSender;
 
@@ -93,7 +97,7 @@ public class EmailService {
             helper.setTo(email);
             helper.setSubject("[배달의민족] 비밀번호 재설정 안내");
 
-            String resetUrl = "http://localhost:4000/reset-password?token=" + token;
+            String resetUrl = frontendUrl + "/reset-password?token=" + token;
             String content = """
                 <!DOCTYPE html>
                 <html lang="ko">

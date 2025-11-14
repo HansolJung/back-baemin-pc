@@ -2,6 +2,7 @@ package it.korea.app_bmpc.config;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -44,6 +45,9 @@ import lombok.RequiredArgsConstructor;
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
+
+    @Value("${front-end.url}")
+    private String frontendUrl;
 
     private final UserServiceDetails userServiceDetails;
     private final JWTUtils jwtUtils;
@@ -155,7 +159,7 @@ public class SecurityConfig {
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
 
         // 경로 설정
-        config.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:4000"));
+        config.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:4000", frontendUrl));
         config.setAllowCredentials(true);
         config.setMaxAge(3600L);  // 1시간
 
