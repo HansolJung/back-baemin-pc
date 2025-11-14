@@ -62,7 +62,7 @@ public class ReviewService {
     public Map<String, Object> getStoreReviewList(Pageable pageable, int storeId, boolean isAdmin) throws Exception {
         Map<String, Object> resultMap = new HashMap<>();
 
-        Page<ReviewEntity> pageList = reviewRepository.findAllByStoreId(storeId, "N", pageable);
+        Page<ReviewEntity> pageList = reviewRepository.findAllByStoreId(storeId, pageable);
 
         List<ReviewDTO.Response> reviewList = pageList.getContent().stream().map(r -> ReviewDTO.Response.of(r, !isAdmin)).toList();   // ADMIN 권한이면 마스킹 처리 안함
 
@@ -93,7 +93,7 @@ public class ReviewService {
 
         Map<String, Object> resultMap = new HashMap<>();
 
-        Page<ReviewEntity> pageList = reviewRepository.findAllByStoreId(storeEntity.getStoreId(), "N", pageable);
+        Page<ReviewEntity> pageList = reviewRepository.findAllByStoreId(storeEntity.getStoreId(), pageable);
 
         List<ReviewDTO.DetailResponse> reviewList = pageList.getContent().stream().map(ReviewDTO.DetailResponse::of).toList();
 
@@ -114,7 +114,7 @@ public class ReviewService {
     public Map<String, Object> getUserReviewList(Pageable pageable, String userId) throws Exception {
         Map<String, Object> resultMap = new HashMap<>();
 
-        Page<ReviewEntity> pageList = reviewRepository.findAllByUserId(userId, "N", pageable);
+        Page<ReviewEntity> pageList = reviewRepository.findAllByUserId(userId, pageable);
 
         List<ReviewDTO.DetailResponse> reviewList = pageList.getContent().stream().map(ReviewDTO.DetailResponse::of).toList();
 
@@ -200,6 +200,10 @@ public class ReviewService {
             throw new RuntimeException("본인이 작성한 리뷰만 수정할 수 있습니다.");
         }
 
+        if ("Y".equals(reviewEntity.getDelYn()) || "A".equals(reviewEntity.getDelYn())) {
+            throw new RuntimeException("삭제된 리뷰는 수정할 수 없습니다.");
+        }
+
         reviewEntity.setRating(request.getRating());
         reviewEntity.setContent(request.getContent());
 
@@ -277,6 +281,10 @@ public class ReviewService {
             throw new RuntimeException("본인이 작성한 리뷰만 삭제할 수 있습니다.");
         }
 
+        if ("Y".equals(reviewEntity.getDelYn())) {
+            throw new RuntimeException("이미 삭제된 리뷰입니다.");
+        }
+
         reviewEntity.setDelYn("Y");
         reviewRepository.save(reviewEntity);
 
@@ -311,8 +319,9 @@ public class ReviewService {
         }
 
         // 이미 답변이 존재하는지 체크
-        if (reviewEntity.getReply() != null) {
-            throw new RuntimeException("이미 해당 리뷰에 대한 답변이 존재합니다.");
+        if (reviewEntity.getReply() != null || 
+                "Y".equals(reviewEntity.getReply().getDelYn()) || "A".equals(reviewEntity.getReply().getDelYn()) ) {
+            throw new RuntimeException("이미 해당 리뷰에 대해 답변을 작성한 적이 있습니다.");
         }
 
         // 답변 엔티티 생성
@@ -340,14 +349,14 @@ public class ReviewService {
             .orElseThrow(() -> new RuntimeException("해당 리뷰 답변이 존재하지 않습니다."));
 
         // 답변 삭제 여부 확인
-        if ("Y".equals(reviewReplyEntity.getDelYn())) {
+        if ("Y".equals(reviewReplyEntity.getDelYn()) || "A".equals(reviewReplyEntity.getDelYn())) {
             throw new RuntimeException("삭제된 리뷰 답변은 수정할 수 없습니다.");
         }
 
         ReviewEntity reviewEntity = reviewReplyEntity.getReview();
 
         // 리뷰 삭제 여부 확인
-        if ("Y".equals(reviewEntity.getDelYn())) {
+        if ("Y".equals(reviewEntity.getDelYn()) || "A".equals(reviewEntity.getDelYn())) {
             throw new RuntimeException("이미 삭제된 리뷰에는 답변을 수정할 수 없습니다.");
         }
 
@@ -380,14 +389,14 @@ public class ReviewService {
             .orElseThrow(() -> new RuntimeException("해당 리뷰 답변이 존재하지 않습니다."));
 
         // 답변 삭제 여부 확인
-        if ("Y".equals(reviewReplyEntity.getDelYn())) {
+        if ("Y".equals(reviewReplyEntity.getDelYn()) || "A".equals(reviewReplyEntity.getDelYn())) {
             throw new RuntimeException("이미 삭제된 리뷰 답변입니다.");
         }
 
         ReviewEntity reviewEntity = reviewReplyEntity.getReview();
 
         // 리뷰 삭제 여부 확인
-        if ("Y".equals(reviewEntity.getDelYn())) {
+        if ("Y".equals(reviewEntity.getDelYn()) || "A".equals(reviewEntity.getDelYn())) {
             throw new RuntimeException("삭제된 리뷰의 답변은 삭제할 수 없습니다.");
         }
 
@@ -496,7 +505,7 @@ public class ReviewService {
         ReviewEntity reviewEntity = reviewRepository.findById(reviewId)
             .orElseThrow(() -> new RuntimeException("해당 리뷰가 존재하지 않습니다."));
 
-        reviewEntity.setDelYn("Y");
+        reviewEntity.setDelYn("A");     // 어드민이 삭제시 Y가 아니라 A 저장
         reviewRepository.save(reviewEntity);
 
         // 가게 평균 평점 및 리뷰 수 업데이트
@@ -516,7 +525,7 @@ public class ReviewService {
             .orElseThrow(() -> new RuntimeException("해당 리뷰 답변이 존재하지 않습니다."));
 
         // 답변 삭제 여부 확인
-        if ("Y".equals(reviewReplyEntity.getDelYn())) {
+        if ("Y".equals(reviewReplyEntity.getDelYn()) || "A".equals(reviewReplyEntity.getDelYn())) {
             throw new RuntimeException("이미 삭제된 리뷰 답변입니다.");
         }
 
@@ -527,11 +536,11 @@ public class ReviewService {
         }
 
         // 리뷰 삭제 여부 확인
-        if ("Y".equals(reviewEntity.getDelYn())) {
+        if ("Y".equals(reviewEntity.getDelYn()) || "A".equals(reviewEntity.getDelYn())) {
             throw new RuntimeException("삭제된 리뷰의 답변은 삭제할 수 없습니다.");
         }
 
-        reviewReplyEntity.setDelYn("Y");
+        reviewReplyEntity.setDelYn("A");     // 어드민이 삭제시 Y가 아니라 A 저장
 
         reviewReplyRepository.save(reviewReplyEntity);
     }

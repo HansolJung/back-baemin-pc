@@ -21,7 +21,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "bmpc_review_reply")
-@SQLRestriction("del_yn = 'N'")
+@SQLRestriction("del_yn IN ('N', 'A')")
 public class ReviewReplyEntity extends BaseEntity {
 
     @Id

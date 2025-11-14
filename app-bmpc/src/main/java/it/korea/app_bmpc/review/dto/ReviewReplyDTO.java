@@ -30,6 +30,17 @@ public class ReviewReplyDTO {
         
         public static Response of(ReviewReplyEntity entity) {
 
+            // 어드민이 삭제한 경우는 해당 답변은 관리자에 의해 삭제된 답변이라고 알려주기
+            if ("A".equals(entity.getDelYn())) {
+                return Response.builder()
+                    .reviewReplyId(entity.getReviewReplyId())
+                    .content("해당 답변은 관리자에 의해 삭제된 답변입니다.")
+                    .delYn("A")   
+                    .createDate(entity.getCreateDate())
+                    .updateDate(entity.getUpdateDate())
+                    .build();
+            }
+
             return Response.builder()
                 .reviewReplyId(entity.getReviewReplyId())
                 .content(entity.getContent())

@@ -21,32 +21,32 @@ public interface ReviewRepository extends JpaRepository<ReviewEntity, Integer>, 
             join fetch r.order o
             left join fetch o.itemList i
             where r.store.storeId = :storeId
-            and r.delYn = :delYn
+            and r.delYn in ('N', 'A')
             order by o.orderDate desc
         """,
         countQuery = """
             select count(r) from ReviewEntity r
             where r.store.storeId = :storeId
-            and r.delYn = :delYn
+            and r.delYn in ('N', 'A')
         """
     )
-    Page<ReviewEntity> findAllByStoreId(@Param("storeId") int storeId, @Param("delYn") String delYn, Pageable pageable);
+    Page<ReviewEntity> findAllByStoreId(@Param("storeId") int storeId, Pageable pageable);
 
     @Query(value = """
             select r from ReviewEntity r
             join fetch r.order o
             left join fetch o.itemList i
             where r.user.userId = :userId
-            and r.delYn = :delYn
+            and r.delYn in ('N', 'A')
             order by o.orderDate desc
         """,
         countQuery = """
             select count(r) from ReviewEntity r
             where r.user.userId = :userId
-            and r.delYn = :delYn
+            and r.delYn in ('N', 'A')
         """
     )
-    Page<ReviewEntity> findAllByUserId(@Param("userId") String userId, @Param("delYn") String delYn, Pageable pageable);
+    Page<ReviewEntity> findAllByUserId(@Param("userId") String userId, Pageable pageable);
 
     @EntityGraph(attributePaths = {"user", "fileList", "reply", "reply.user"})  // N+1 현상 해결
     Page<ReviewEntity> findAll(Specification<ReviewEntity> searchSpecification, Pageable pageable);

@@ -1,6 +1,7 @@
 package it.korea.app_bmpc.review.dto;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 
 import org.springframework.web.multipart.MultipartFile;
@@ -43,6 +44,25 @@ public class ReviewDTO {
         private ReviewReplyDTO.Response reply;
         
         public static Response of(ReviewEntity entity, boolean isMasked) {
+
+            // 어드민이 삭제한 경우는 해당 리뷰는 관리자에 의해 삭제된 리뷰라고 알려주기
+            if ("A".equals(entity.getDelYn())) {
+                String userId = entity.getUser().getUserId();
+                String writer = isMasked ? MaskingUtils.maskingUserId(userId) : userId;
+
+                return Response.builder()
+                    .reviewId(entity.getReviewId())
+                    .rating(entity.getRating())
+                    .content("해당 리뷰는 관리자에 의해 삭제된 리뷰입니다.")
+                    .delYn("A")
+                    .writer(writer)
+                    .createDate(entity.getCreateDate())
+                    .updateDate(entity.getUpdateDate())
+                    .order(null)
+                    .fileList(Collections.emptyList())
+                    .reply(null)
+                    .build();
+            }
 
             // 파일 엔티티를 파일 DTO 로 객체 변환
             // 바로 이때 파일 리스트가 SELECT 된다.
@@ -96,6 +116,22 @@ public class ReviewDTO {
         private ReviewReplyDTO.Response reply;
         
         public static DetailResponse of(ReviewEntity entity) {
+
+            // 어드민이 삭제한 경우는 해당 리뷰는 관리자에 의해 삭제된 리뷰라고 알려주기
+            if ("A".equals(entity.getDelYn())) {
+                return DetailResponse.builder()
+                    .reviewId(entity.getReviewId())
+                    .rating(entity.getRating())
+                    .content("해당 리뷰는 관리자에 의해 삭제된 리뷰입니다.")
+                    .delYn("A")
+                    .createDate(entity.getCreateDate())
+                    .updateDate(entity.getUpdateDate())
+                    .writer(MaskingUtils.maskingUserId(entity.getUser().getUserId()))
+                    .order(null)
+                    .fileList(Collections.emptyList())
+                    .reply(null)
+                    .build();
+            }
 
             // 파일 엔티티를 파일 DTO 로 객체 변환
             // 바로 이때 파일 리스트가 SELECT 된다.
