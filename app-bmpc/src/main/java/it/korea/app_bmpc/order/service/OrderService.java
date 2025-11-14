@@ -221,11 +221,14 @@ public class OrderService {
             .orElseThrow(() -> new RuntimeException("해당 사용자가 존재하지 않습니다."));
 
         StoreEntity storeEntity = ownerEntity.getStore();
-        if (storeEntity == null) {
-            throw new RuntimeException("등록된 가게가 없습니다.");
-        }
-
         Map<String, Object> resultMap = new HashMap<>();
+
+        // 등록된 가게가 없으면 그냥 null 담아서 리턴
+        if (storeEntity == null) {
+            resultMap.put("content", null);
+
+            return resultMap;
+        }
 
         Page<OrderEntity> pageList = orderRepository.findAllByStore_storeId(storeEntity.getStoreId(), pageable);
 
