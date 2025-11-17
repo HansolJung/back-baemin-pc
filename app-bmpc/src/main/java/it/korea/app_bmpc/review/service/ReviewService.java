@@ -319,9 +319,8 @@ public class ReviewService {
         }
 
         // 이미 답변이 존재하는지 체크
-        if (reviewEntity.getReply() != null || 
-                "Y".equals(reviewEntity.getReply().getDelYn()) || "A".equals(reviewEntity.getReply().getDelYn()) ) {
-            throw new RuntimeException("이미 해당 리뷰에 대해 답변을 작성한 적이 있습니다.");
+        if (reviewEntity.getReply() != null) {
+            throw new RuntimeException("해당 리뷰에 대해 이미 답변을 작성한 적이 있습니다.");
         }
 
         // 답변 엔티티 생성
