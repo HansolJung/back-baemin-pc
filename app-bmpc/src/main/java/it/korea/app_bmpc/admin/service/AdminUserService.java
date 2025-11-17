@@ -148,6 +148,7 @@ public class AdminUserService {
         userEntity.setPhone(userRequestDTO.getPhone());
         userEntity.setEmail(userRequestDTO.getEmail());
         userEntity.setGender(userRequestDTO.getGender());
+        userEntity.setBirth(userRequestDTO.getBirth());
 
         if (StringUtils.isNotBlank(userRequestDTO.getPasswd())) {
             userEntity.setPasswd(passwordEncoder.encode(userRequestDTO.getPasswd()));
