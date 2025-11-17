@@ -1,5 +1,7 @@
 package it.korea.app_bmpc.order.scheduler;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.context.ApplicationEventPublisher;
@@ -7,11 +9,13 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import it.korea.app_bmpc.order.entity.OrderEntity;
+import it.korea.app_bmpc.order.event.OrderStatusChangedEvent;
 import it.korea.app_bmpc.order.repository.OrderRepository;
+import it.korea.app_bmpc.user.entity.UserEntity;
 import it.korea.app_bmpc.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 
 /**
  * 주문 자동 취소 스케줄러
@@ -48,34 +52,43 @@ public class OrderCancelScheduler {
 
             log.info("주문 자동취소 스케줄러 시작");
 
-            // LocalDateTime time = LocalDateTime.now().minusMinutes(5);
-            // List<OrderEntity> orderEntityList = orderRepository.findByStatusAndOrderDateBefore("주문완료", time);
+            LocalDateTime time = LocalDateTime.now().minusMinutes(5);
+            List<OrderEntity> orderEntityList = orderRepository.findByStatusAndOrderDateBefore("주문완료", time);
 
-            // for (OrderEntity orderEntity : orderEntityList) {
-            //     try {
-            //         orderEntity.setStatus("주문취소");
-            //         orderRepository.save(orderEntity);
+            for (OrderEntity orderEntity : orderEntityList) {
+                try {
 
-            //         UserEntity userEntity = orderEntity.getUser();
+                    int updated = 
+                        orderRepository.updateStatusWithScheduler(orderEntity.getOrderId(), "주문완료", "주문취소");
 
-            //         // 사용자가 존재하는 경우에만 보유금 원복
-            //         if (userEntity != null && "N".equals(userEntity.getDelYn())) {
-            //             int originalDeposit = userEntity.getDeposit();
-            //             int totalPrice = orderEntity.getTotalPrice();
+                    // 만약 updated 의 값이 0이라면 점주가 이미 해당 주문의 상태를 변경했다는 뜻.
+                    if (updated == 0) {
+                        log.info("주문 자동취소 실패 - 이미 처리된 주문 아이디: {}", orderEntity.getOrderId());
 
-            //             userEntity.setDeposit(originalDeposit + totalPrice);  // 주문이 취소되었기 때문에 보유금 원복
+                        continue;
+                    }
 
-            //             userRepository.save(userEntity);
 
-            //             String message = "주문이 취소됐습니다.";
-            //             eventPublisher.publishEvent(new OrderStatusChangedEvent(userEntity.getUserId(), message));
-            //         }
+                    UserEntity userEntity = orderEntity.getUser();
 
-            //         count++;
-            //     } catch (Exception e) {
-            //         log.error("주문 자동취소 실패 - 주문 아이디: {}", orderEntity.getOrderId());
-            //     }
-            // }
+                    // 사용자가 존재하는 경우에만 보유금 원복
+                    if (userEntity != null && "N".equals(userEntity.getDelYn())) {
+                        int originalDeposit = userEntity.getDeposit();
+                        int totalPrice = orderEntity.getTotalPrice();
+
+                        userEntity.setDeposit(originalDeposit + totalPrice);  // 주문이 취소되었기 때문에 보유금 원복
+
+                        userRepository.save(userEntity);
+
+                        String message = "주문이 취소됐습니다.";
+                        eventPublisher.publishEvent(new OrderStatusChangedEvent(userEntity.getUserId(), message));
+                    }
+
+                    count++;
+                } catch (Exception e) {
+                    log.error("주문 자동취소 실패 - 주문 아이디: {}", orderEntity.getOrderId());
+                }
+            }
 
             log.info("주문 자동취소 스케줄러 완료 - 처리건수: {}", count);
 

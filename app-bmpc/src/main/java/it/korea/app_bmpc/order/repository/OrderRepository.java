@@ -10,6 +10,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -127,4 +128,8 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Integer>, Jp
     List<OrderEntity> findByStatusAndOrderDateBetween(String status, LocalDateTime startDate, LocalDateTime endDate);
 
     List<OrderEntity> findByStatusAndOrderDateAfter(String status, LocalDateTime after);
+
+    @Modifying
+    @Query("update OrderEntity o set o.status = :newStatus where o.orderId = :orderId and o.status = :oldStatus")
+    int updateStatusWithScheduler(@Param("orderId") int orderId, @Param("oldStatus") String oldStatus, @Param("newStatus") String newStatus);
 }
