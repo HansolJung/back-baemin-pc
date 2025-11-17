@@ -116,7 +116,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         if (failed instanceof UsernameNotFoundException || cause instanceof UsernameNotFoundException) {
             message = "존재하지 않는 사용자입니다.";
         } else if (failed instanceof BadCredentialsException || cause instanceof BadCredentialsException) {
-            message = "비밀번호가 올바르지 않습니다.";
+            message = "아이디 또는 비밀번호가 올바르지 않습니다.";
         } else if (failed instanceof DisabledException || cause instanceof DisabledException) {
             message = "해당 계정은 삭제되었습니다.";
         } else {
