@@ -54,7 +54,7 @@ public class MenuService {
     @Transactional(readOnly = true)
     public MenuDTO.Detail getMenu(int menuId) throws Exception {
         return MenuDTO.Detail.of(menuRepository.getMenu(menuId)
-            .orElseThrow(()-> new RuntimeException("해당 메뉴가 존재하지 않습니다.")));
+            .orElse(null));
     }
 
     /**

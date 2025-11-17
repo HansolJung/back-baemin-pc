@@ -1,6 +1,7 @@
 package it.korea.app_bmpc.menu.dto;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 
 import org.springframework.web.multipart.MultipartFile;
@@ -90,8 +91,26 @@ public class MenuDTO {
         private List<MenuOptionGroupDTO.Response> menuOptionGroupList;
 
         public static Detail of(MenuEntity entity) {
-            // 파일 엔티티를 파일 DTO 로 객체 변환
-            // 바로 이때 파일 리스트가 SELECT 된다.
+            
+            // 만약 메뉴 엔티티가 null이면 그냥 빈 DTO 리턴
+            if (entity == null) {
+                return Detail.builder()
+                    .menuId(0)
+                    .menuName("")
+                    .description("")
+                    .price(0)
+                    .createDate(null)
+                    .updateDate(null)
+                    .fileName("")
+                    .storedName("")
+                    .filePath("")
+                    .fileThumbName("")
+                    .soldoutYn("N")
+                    .delYn("N")
+                    .menuOptionGroupList(Collections.emptyList())
+                    .build();
+            }
+
             MenuFileDTO image = null;
 
             if (entity.getFile() != null) {
