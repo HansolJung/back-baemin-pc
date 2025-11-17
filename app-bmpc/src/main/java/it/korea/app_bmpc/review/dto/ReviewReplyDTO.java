@@ -41,6 +41,17 @@ public class ReviewReplyDTO {
                     .build();
             }
 
+            // 점주 본인이 삭제한 경우는 아무런 내용도 안돌려주기
+            if ("Y".equals(entity.getDelYn())) {
+                return Response.builder()
+                    .reviewReplyId(entity.getReviewReplyId())
+                    .content("")
+                    .delYn("Y")   
+                    .createDate(entity.getCreateDate())
+                    .updateDate(entity.getUpdateDate())
+                    .build();
+            }
+
             return Response.builder()
                 .reviewReplyId(entity.getReviewReplyId())
                 .content(entity.getContent())
