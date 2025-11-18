@@ -3,6 +3,8 @@ package it.korea.app_bmpc.order.dto;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import it.korea.app_bmpc.order.entity.OrderEntity;
 import it.korea.app_bmpc.order.entity.OrderItemEntity;
 import lombok.AllArgsConstructor;
@@ -18,6 +20,7 @@ import lombok.Setter;
 public class OrderSummaryDTO {
 
     private int orderId;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime orderDate;
     private int totalPrice;
 
