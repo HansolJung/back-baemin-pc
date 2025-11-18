@@ -5,6 +5,8 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -178,6 +180,39 @@ public class FileUtils {
 
         String thumbName = this.thumbNailFile(225, 270, thumbFile, thumbFilePath);
         fileMap.put("thumbName", thumbName);
+
+        return fileMap;
+    }
+
+    /**
+     * 이미지 파일 복사 (메뉴 복사용)
+     * @param sourceStoredName 원본 파일 저장명
+     * @param filePath 파일 저장 경로
+     * @return
+     * @throws Exception
+     */
+    public Map<String, Object> copyImageFile(String sourceStoredName, String filePath) throws Exception {
+
+        File sourceFile = new File(filePath + sourceStoredName);
+        if (!sourceFile.exists()) {
+            throw new RuntimeException("복사할 원본 이미지 파일이 존재하지 않습니다.");
+        }
+
+        String ext = sourceStoredName.substring(sourceStoredName.lastIndexOf(".") + 1);
+        String newStoredName = UUID.randomUUID().toString().replaceAll("-", "").substring(0, 16) + "." + ext;
+        
+        File targetFile = new File(filePath + newStoredName);
+
+        Files.copy(sourceFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+
+        String thumbPath = filePath + "thumb" + File.separator;
+        String newThumbName = this.thumbNailFile(225, 270, targetFile, thumbPath);
+
+        Map<String, Object> fileMap = new HashMap<>();
+        fileMap.put("fileName", sourceStoredName);     // 원본 파일명
+        fileMap.put("storedFileName", newStoredName);  // 새로 저장된 실제 파일명
+        fileMap.put("filePath", filePath);
+        fileMap.put("thumbName", newThumbName);
 
         return fileMap;
     }

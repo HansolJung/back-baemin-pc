@@ -269,4 +269,22 @@ public class MenuApiController {
         
         return ResponseEntity.ok().body(ApiResponse.ok("OK"));
     }
+
+    /**
+     * 메뉴 복사하기
+     * @param menuId 메뉴 아이디
+     * @param user 로그인한 사용자
+     * @return
+     * @throws Exception
+     */
+    @PreAuthorize("hasRole('OWNER')") // ROLE_OWNER 권한이 있어야 접근 가능
+    @PostMapping("/menu/copy/{menuId}")
+    @Operation(summary = "메뉴 복사하기")
+    public ResponseEntity<?> copyMenu(@PathVariable(name = "menuId") int menuId,
+            @AuthenticationPrincipal UserSecureDTO user) throws Exception {
+        
+        menuService.copyMenu(menuId, user.getUserId());
+
+        return ResponseEntity.ok().body(ApiResponse.ok("OK"));
+    }
 }

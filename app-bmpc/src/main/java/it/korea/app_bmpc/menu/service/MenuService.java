@@ -907,6 +907,106 @@ public class MenuService {
     }
 
     /**
+     * 메뉴 복사하기
+     * @param menuId 메뉴 아이디
+     * @param userId 사용자 아이디
+     * @return
+     * @throws Exception
+     */
+    @Transactional
+    public void copyMenu(int menuId, String userId) throws Exception {
+
+        // 복사하려는 원본 메뉴 가져오기
+        MenuEntity sourceMenu = menuRepository.getMenu(menuId)
+            .orElseThrow(() -> new RuntimeException("복사하려는 메뉴가 존재하지 않습니다."));
+
+        if ("Y".equals(sourceMenu.getDelYn())) {
+            throw new RuntimeException("삭제된 메뉴는 복사할 수 없습니다.");
+        }
+
+        // 점주 소유 여부 체크
+        UserEntity userEntity = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("해당 사용자가 존재하지 않습니다."));
+
+        StoreEntity store = userEntity.getStore();
+        StoreEntity sourceStore = sourceMenu.getMenuCategory().getStore();
+
+        if (store == null || store.getStoreId() != sourceStore.getStoreId()) {
+            throw new RuntimeException("해당 메뉴를 복사할 권한이 없습니다.");
+        }
+
+        // 새 메뉴 엔티티 생성
+        MenuEntity newMenu = new MenuEntity();
+        newMenu.setMenuName(sourceMenu.getMenuName() + " - 복사본");
+        newMenu.setDescription(sourceMenu.getDescription());
+        newMenu.setPrice(sourceMenu.getPrice());
+        newMenu.setSoldoutYn("N");
+        newMenu.setDelYn("N");
+
+        // 같은 메뉴 카테고리에 등록
+        MenuCategoryEntity category = sourceMenu.getMenuCategory();
+        category.addMenu(newMenu, true);
+
+        // 이미지 파일 복사
+        if (sourceMenu.getFile() != null) {
+
+            MenuFileEntity oldFile = sourceMenu.getFile();
+
+            Map<String, Object> copyFileMap = fileUtils.copyImageFile(oldFile.getStoredName(), webConfig.getMenuPath());
+
+            MenuFileEntity newFile = new MenuFileEntity();
+            newFile.setFileName(copyFileMap.get("fileName").toString());
+            newFile.setStoredName(copyFileMap.get("storedFileName").toString());
+            newFile.setFilePath(copyFileMap.get("filePath").toString());
+            newFile.setFileThumbName(copyFileMap.get("thumbName").toString());
+            newFile.setFileSize(oldFile.getFileSize());
+
+            newMenu.addFile(newFile, false);
+        }
+
+        // 1차 저장
+        MenuEntity savedMenu = menuRepository.save(newMenu);
+
+        // 메뉴 옵션 그룹 복사
+        for (MenuOptionGroupEntity group : sourceMenu.getMenuOptionGroupList()) {
+            // 만약 원본의 메뉴 옵션 그룹이 삭제됐으면 복사 건너뛰기
+            if ("Y".equals(group.getDelYn())) {
+                continue;
+            }
+
+            MenuOptionGroupEntity newGroup = new MenuOptionGroupEntity();
+            newGroup.setMenu(savedMenu);
+            newGroup.setMenuOptGrpName(group.getMenuOptGrpName());
+            newGroup.setRequiredYn(group.getRequiredYn());
+            newGroup.setDelYn("N");
+            newGroup.setMinSelect(group.getMinSelect());
+            newGroup.setMaxSelect(group.getMaxSelect());
+            newGroup.setDisplayOrder(group.getDisplayOrder());
+
+            savedMenu.addMenuOptionGroup(newGroup, false);
+
+            // 메뉴 옵션 복사
+            for (MenuOptionEntity option : group.getMenuOptionList()) {
+                // 만약 원본의 메뉴 옵션이 삭제됐으면 복사 건너뛰기
+                if ("Y".equals(option.getDelYn())) {
+                    continue;
+                }
+
+                MenuOptionEntity newOption = new MenuOptionEntity();
+                newOption.setMenuOptionGroup(newGroup);
+                newOption.setMenuOptName(option.getMenuOptName());
+                newOption.setPrice(option.getPrice());
+                newOption.setAvailableYn(option.getAvailableYn());
+                newOption.setDelYn("N");
+                newOption.setMaxSelect(option.getMaxSelect());
+                newOption.setDisplayOrder(option.getDisplayOrder());
+
+                newGroup.addMenuOption(newOption, false);
+            }
+        }
+    }
+
+    /**
      * 파일 삭제과정 공통화해서 분리
      * @param imageFilePath 이미지 파일 경로
      * @param storedName 저장 파일명
