@@ -422,11 +422,13 @@ public class ReviewService {
         Double ratingAvg = reviewRepository.findRatingAvgByStoreId(storeEntity.getStoreId());
         Long reviewCount = reviewRepository.countByStore_storeIdAndDelYn(storeEntity.getStoreId(), "N");
 
-        if (ratingAvg != null) {
-            storeEntity.setRatingAvg(BigDecimal.valueOf(ratingAvg).setScale(1, RoundingMode.HALF_UP));
-            storeEntity.setReviewCount(reviewCount.intValue());
-            storeRepository.save(storeEntity);
-        }
+        // 리뷰가 없으면 별점을 0으로 초기화
+        BigDecimal avg = ratingAvg != null ? BigDecimal.valueOf(ratingAvg).setScale(1, RoundingMode.HALF_UP) : BigDecimal.ZERO;
+
+        storeEntity.setRatingAvg(avg);
+        storeEntity.setReviewCount(reviewCount != null ? reviewCount.intValue() : 0);
+
+        storeRepository.save(storeEntity);
     }
 
     /**
