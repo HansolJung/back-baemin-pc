@@ -13,8 +13,6 @@ public class AdminUserUpdateRequestDTO {
     private String userName;
     @NotBlank(message = "생년월일은 필수 항목입니다.")
     private String birth;
-    @NotBlank(message = "성별은 필수 항목입니다.")
-    private String gender;
     @NotBlank(message = "전화번호는 필수 항목입니다.")
     private String phone;
     @NotBlank(message = "이메일은 필수 항목입니다.")
