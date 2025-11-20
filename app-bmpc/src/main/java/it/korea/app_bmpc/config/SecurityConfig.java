@@ -108,6 +108,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/v1/store/my").authenticated()   // 내 가게 보기는 인증 처리
                 .requestMatchers(HttpMethod.GET, "/api/v1/store/**").permitAll()   // GET 방식인 /api/v1/store 는 모두 허용
                 .requestMatchers(HttpMethod.GET, "/api/v1/menu/**").permitAll()   // GET 방식인 /api/v1/menu 는 모두 허용
+                .requestMatchers(HttpMethod.GET, "/api/v1/review/store/*").permitAll()   // GET 방식인 /api/v1/review/store/{storeId} 는 허용
                 .requestMatchers("/api/v1/admin/**").hasAnyRole("ADMIN")   // ADMIN 권한을 가지고 있어야만 허용
                 .anyRequest().authenticated())
             .addFilterBefore(new JWTFilter(jwtUtils, userRepository), LoginFilter.class)    // 로그인 필터를 사용하기 전에 JWTFilter 를 먼저 사용하겠다는 뜻
