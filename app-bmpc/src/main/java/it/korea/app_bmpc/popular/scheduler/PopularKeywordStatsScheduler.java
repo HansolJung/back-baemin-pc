@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import it.korea.app_bmpc.popular.dto.SearchLogProjection;
 import it.korea.app_bmpc.popular.entity.PopularKeywordEntity;
 import it.korea.app_bmpc.popular.entity.PopularKeywordStatsEntity;
 import it.korea.app_bmpc.popular.repository.PopularKeywordRepository;
@@ -51,11 +52,11 @@ public class PopularKeywordStatsScheduler {
             LocalDateTime startOfToday = yesterday.plusDays(1).atStartOfDay();
 
             // 어제 하루 검색 횟수 집계하기
-            List<Object[]> dailyCounts = searchLogRepository.getSearchTextWithCount(startOfYesterday, startOfToday);
+            List<SearchLogProjection> dailyCounts = searchLogRepository.getSearchTextWithCount(startOfYesterday, startOfToday);
 
             // <검색어, 검색 횟수>로 Map 만들기
             Map<String, Integer> dailyCountMap = 
-                dailyCounts.stream().collect(Collectors.toMap(row -> (String) row[0], row -> ((Long) row[1]).intValue()));
+                dailyCounts.stream().collect(Collectors.toMap(SearchLogProjection::getSearchText, c -> c.getCount().intValue()));
 
             // 모든 popular_keyword 가져오기
             List<PopularKeywordEntity> popularKeywordList = popularKeywordRepository.findAll();
