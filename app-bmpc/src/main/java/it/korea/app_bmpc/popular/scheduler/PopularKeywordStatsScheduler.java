@@ -34,7 +34,8 @@ public class PopularKeywordStatsScheduler {
     private final PopularKeywordStatsRepository popularKeywordStatsRepository;
     private final SearchLogRepository searchLogRepository;
 
-    @Scheduled(cron = "0 0 1 * * *") // 매일 새벽 1시
+    //@Scheduled(cron = "0 0 1 * * *") // 매일 새벽 1시
+    @Scheduled(cron = "0 */1 * * * *") // 1분마다 실행 (테스트용). 추후 새벽 1시로 바꿔야함
     @Transactional
     public void createDailyPopularKeywordStats() {
 
